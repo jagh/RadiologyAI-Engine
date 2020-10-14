@@ -1,2 +1,5 @@
 ## Local datasets
 testbed/dataset_unibe/*
+
+## Local files
+__pycache__/
