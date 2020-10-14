@@ -47,7 +47,7 @@ def convert_dcm2niir(dcm_folder, output_folder):
 
 
 #######################################################################
-## Function Launcher
+## Launcher settings
 #######################################################################
 
 testbed = "testbed/"
