@@ -14,16 +14,8 @@ import matplotlib.pyplot as plt
 import SimpleITK as sitk
 from third_party.lungmask import mask
 from third_party.lungmask import resunet
+from engine.utils import Utils
 
-
-def read_nii(filepath):
-    '''
-    Reads .nii file and returns pixel array
-    '''
-    ct_scan = nib.load(filepath)
-    array   = ct_scan.get_fdata()
-    array   = np.rot90(np.array(array))
-    return(array)
 
 def ct_segmentation(input_ct):
     """
@@ -46,10 +38,19 @@ def ct_segmentation(input_ct):
 ## Launcher settings
 #######################################################################
 
-folder_input_path = glob.glob("testbed/dataset_unibe/train-nii/Pat_Control_1/*")
-folder_output_path = "testbed/dataset_unibe/outputs/"
+# ## Convert CT scans
+testbed = "testbed/"
+dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
+nii_folder = str(testbed + "/dataset_unibe/train-nii/")
 
-for input_path in folder_input_path:
+Utils().convert_dcm2nii(dcm_folder, nii_folder)
+
+
+## CT lung lobes segmentation
+input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
+output_folder = str(testbed + "/dataset_unibe/outputs/")
+
+for input_path in input_folder:
     """
     CT lung lobes segmentation using UNet
     """
@@ -57,10 +58,9 @@ for input_path in folder_input_path:
     ct_name = input_path.split(os.path.sep)[-1]
     ct_dcm_format = str(ct_name.split('.nii.gz')[0] + ".dcm")
 
-    # print("ct_name: {}".format(input_path))
-    # print("ct_dcm_format: {}".format(ct_dcm_format))
-
     input_ct = sitk.ReadImage(input_path)
     result_out = ct_segmentation(input_ct)
-    sitk.WriteImage(result_out, str(folder_output_path+"/"+ct_dcm_format))
-    print("CT segmentation file: {}".format(str(folder_output_path+"/"+ct_dcm_format)))
+
+    Utils().mkdir(output_folder)
+    sitk.WriteImage(result_out, str(output_folder+"/"+ct_dcm_format))
+    print("CT segmentation file: {}".format(str(output_folder+"/"+ct_dcm_format)))
