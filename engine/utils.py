@@ -64,10 +64,10 @@ class Utils:
 ## Launcher settings
 #######################################################################
 
-from utils import Utils
-
-testbed = "testbed/"
-dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
-output_folder = str(testbed + "/dataset_unibe/train-nii/")
-
-Utils().convert_dcm2nii(dcm_folder, output_folder)
+# from utils import Utils
+#
+# testbed = "testbed/"
+# dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
+# output_folder = str(testbed + "/dataset_unibe/train-nii/")
+#
+# Utils().convert_dcm2nii(dcm_folder, output_folder)
