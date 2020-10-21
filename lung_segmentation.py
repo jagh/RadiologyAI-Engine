@@ -68,18 +68,18 @@ def loop_segmentation(input_folder, output_folder):
 #######################################################################
 ## Convert CT scans
 testbed = "testbed/"
-# dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
-# nii_folder = str(testbed + "/dataset_unibe/train-nii/")
-#
-# Utils().convert_dcm2nii(dcm_folder, nii_folder)
-#
-#
-# #######################################################################
-# ## CT lung lobes segmentation
-# input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
-# output_folder = str(testbed + "/dataset_unibe/outputs/")
-#
-# loop_segmentation(input_folder, output_folder)
+dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
+nii_folder = str(testbed + "/dataset_unibe/train-nii/")
+
+Utils().convert_dcm2nii(dcm_folder, nii_folder)
+
+
+#######################################################################
+## CT lung lobes segmentation
+input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
+output_folder = str(testbed + "/dataset_unibe/outputs/")
+
+loop_segmentation(input_folder, output_folder)
 
 
 #######################################################################
@@ -92,24 +92,18 @@ extractor = featureextractor.RadiomicsFeatureExtractor(params)
 
 
 ## Calculate the feature (Segment-based)
+feature_values = []
 result = extractor.execute(ct_image_path, mask_path)
 for key, val in six.iteritems(result):
+  # feature_values[str(key)].append(val)
   print("\t%s: %s" %(key, val))
+  feature_values.append(val)
 
 
+## Writing the pyradiomics features
 radiomics_folder = str(testbed + "/dataset_unibe/radiomics_features/")
 filename = os.path.join(radiomics_folder, "9_thorax_exsp_lf__10__i70f__3_lcad-radiomics_features.csv")
 
 with open(filename, 'w+') as f:
     csvw = csv.writer(f)
-    csvw.writerow(result)
-
-
-# ## Calculate the features (voxel-based):
-# result = extractor.execute(ct_image_path, mask_path, voxelBased=True)
-# for key, val in six.iteritems(result):
-#   if isinstance(val, sitk.Image):  # Feature map
-#     sitk.WriteImage(val, key + '.nrrd', True)
-#     print("Stored feature %s in %s" % (key, key + ".nrrd"))
-#   else:  # Diagnostic information
-#     print("\t%s: %s" %(key, val))
+    csvw.writerow(feature_values)
