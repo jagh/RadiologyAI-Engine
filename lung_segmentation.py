@@ -49,7 +49,6 @@ def loop_segmentation(input_folder, output_folder):
         ct_name = input_path.split(os.path.sep)[-1]
         ct_dcm_format = str(ct_name.split('.nii.gz')[0] + "-lung_lobes.nii.gz")
 
-
         input_ct = sitk.ReadImage(input_path)
         result_out = lung_lobes_segmentation(input_ct)
 
@@ -68,41 +67,30 @@ def loop_segmentation(input_folder, output_folder):
 #######################################################################
 ## Convert CT scans
 testbed = "testbed/"
-# dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
-# nii_folder = str(testbed + "/dataset_unibe/train-nii/")
-#
-# Utils().convert_dcm2nii(dcm_folder, nii_folder)
-#
-#
-# #######################################################################
-# ## CT lung lobes segmentation
-# input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
-# output_folder = str(testbed + "/dataset_unibe/outputs/")
-#
-# loop_segmentation(input_folder, output_folder)
+dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
+nii_folder = str(testbed + "/dataset_unibe/train-nii/")
+
+Utils().convert_dcm2nii(dcm_folder, nii_folder)
+
+
+#######################################################################
+## CT lung lobes segmentation
+input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
+output_folder = str(testbed + "/dataset_unibe/outputs/")
+
+loop_segmentation(input_folder, output_folder)
 
 
 #######################################################################
 ## Feature extraction with pyradiomics
-ct_image_path = str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/9_thorax_exsp_lf__10__i70f__3_lcad.nii.gz")
-ct_mask_path = str(testbed + "/dataset_unibe/outputs/9_thorax_exsp_lf__10__i70f__3_lcad-lung_lobes.nii.gz")
+ct_image_path = str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/Pat_IPF_1.nii.gz")
+ct_mask_path = str(testbed + "/dataset_unibe/outputs/Pat_IPF_1-lung_lobes.nii.gz")
 
 ct_image = sitk.ReadImage(ct_image_path)
 ct_mask = sitk.ReadImage(ct_mask_path)
 
-# params = os.path.join("engine", "pyradiomics_params.yaml")
-# extractor = featureextractor.RadiomicsFeatureExtractor(params)
-#
-# ## Calculate the feature (Segment-based)
-# feature_values = []
-# result = extractor.execute(ct_image_path, ct_mask_path)
-# for key, val in six.iteritems(result):
-#   # feature_values[str(key)].append(val)
-#   print("\t%s: %s" %(key, val))
-#   feature_values.append(val)
-
-
 image_feature_list = []
+
 
 ## Get the First Order features
 firstOrderFeatures = firstorder.RadiomicsFirstOrder(ct_image, ct_mask)
@@ -121,9 +109,24 @@ for (key, val) in six.iteritems(shapeFeatures3D.featureValues):
 
 
 ## Writing the pyradiomics features
-radiomics_folder = str(testbed + "/dataset_unibe/radiomics_features/")
+radiomics_folder = os.path.join(testbed, "dataset_unibe/radiomics_features")
+Utils().mkdir(radiomics_folder)
 filename = os.path.join(radiomics_folder, "radiomics_features.csv")
 
 with open(filename, 'w+') as f:
     csvw = csv.writer(f)
     csvw.writerow(image_feature_list)
+
+
+#######################################################################
+## Get all feature from pyradiomics
+# params = os.path.join("engine", "pyradiomics_params.yaml")
+# extractor = featureextractor.RadiomicsFeatureExtractor(params)
+#
+# ## Calculate the feature (Segment-based)
+# feature_values = []
+# result = extractor.execute(ct_image_path, ct_mask_path)
+# for key, val in six.iteritems(result):
+#   # feature_values[str(key)].append(val)
+#   print("\t%s: %s" %(key, val))
+#   feature_values.append(val)
