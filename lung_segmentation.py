@@ -16,7 +16,7 @@ from third_party.lungmask import mask
 from third_party.lungmask import resunet
 from engine.utils import Utils
 
-from radiomics import featureextractor
+from radiomics import featureextractor, firstorder, shape
 import six
 
 import csv
@@ -68,42 +68,62 @@ def loop_segmentation(input_folder, output_folder):
 #######################################################################
 ## Convert CT scans
 testbed = "testbed/"
-dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
-nii_folder = str(testbed + "/dataset_unibe/train-nii/")
-
-Utils().convert_dcm2nii(dcm_folder, nii_folder)
-
-
-#######################################################################
-## CT lung lobes segmentation
-input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
-output_folder = str(testbed + "/dataset_unibe/outputs/")
-
-loop_segmentation(input_folder, output_folder)
+# dcm_folder = glob.glob(str(testbed + "/dataset_unibe/sources/*"))
+# nii_folder = str(testbed + "/dataset_unibe/train-nii/")
+#
+# Utils().convert_dcm2nii(dcm_folder, nii_folder)
+#
+#
+# #######################################################################
+# ## CT lung lobes segmentation
+# input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/*"))
+# output_folder = str(testbed + "/dataset_unibe/outputs/")
+#
+# loop_segmentation(input_folder, output_folder)
 
 
 #######################################################################
 ## Feature extraction with pyradiomics
 ct_image_path = str(testbed + "/dataset_unibe/train-nii/Pat_IPF_1/9_thorax_exsp_lf__10__i70f__3_lcad.nii.gz")
-mask_path = str(testbed + "/dataset_unibe/outputs/9_thorax_exsp_lf__10__i70f__3_lcad-lung_lobes.nii.gz")
+ct_mask_path = str(testbed + "/dataset_unibe/outputs/9_thorax_exsp_lf__10__i70f__3_lcad-lung_lobes.nii.gz")
 
-params = os.path.join("engine", "pyradiomics_params.yaml")
-extractor = featureextractor.RadiomicsFeatureExtractor(params)
+ct_image = sitk.ReadImage(ct_image_path)
+ct_mask = sitk.ReadImage(ct_mask_path)
+
+# params = os.path.join("engine", "pyradiomics_params.yaml")
+# extractor = featureextractor.RadiomicsFeatureExtractor(params)
+#
+# ## Calculate the feature (Segment-based)
+# feature_values = []
+# result = extractor.execute(ct_image_path, ct_mask_path)
+# for key, val in six.iteritems(result):
+#   # feature_values[str(key)].append(val)
+#   print("\t%s: %s" %(key, val))
+#   feature_values.append(val)
 
 
-## Calculate the feature (Segment-based)
-feature_values = []
-result = extractor.execute(ct_image_path, mask_path)
-for key, val in six.iteritems(result):
-  # feature_values[str(key)].append(val)
-  print("\t%s: %s" %(key, val))
-  feature_values.append(val)
+image_feature_list = []
+
+## Get the First Order features
+firstOrderFeatures = firstorder.RadiomicsFirstOrder(ct_image, ct_mask)
+extractor_firstOrder = firstOrderFeatures.execute()
+for (key, val) in six.iteritems(firstOrderFeatures.featureValues):
+    # print("\t%s: %s" % (key, val))
+    image_feature_list.append(val)
+
+
+## Get Shape Features in 3D
+shapeFeatures3D = shape.RadiomicsShape(ct_image, ct_mask)
+extractor_shape = shapeFeatures3D.execute()
+for (key, val) in six.iteritems(shapeFeatures3D.featureValues):
+    # print("\t%s: %s" % (key, val))
+    image_feature_list.append(val)
 
 
 ## Writing the pyradiomics features
 radiomics_folder = str(testbed + "/dataset_unibe/radiomics_features/")
-filename = os.path.join(radiomics_folder, "9_thorax_exsp_lf__10__i70f__3_lcad-radiomics_features.csv")
+filename = os.path.join(radiomics_folder, "radiomics_features.csv")
 
 with open(filename, 'w+') as f:
     csvw = csv.writer(f)
-    csvw.writerow(feature_values)
+    csvw.writerow(image_feature_list)
