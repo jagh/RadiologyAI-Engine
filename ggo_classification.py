@@ -160,10 +160,9 @@ n_splits = 5
 lr_params = dict({'solver': 'lbfgs', 'max_iter': 500, 'random_state':2,
                                     'multi_class':'multinomial', 'n_jobs': 8})
 
-rf_params = dict({'n_estimators': 1000, 'n_jobs': 8})
-                                    # 'criterion': 'gini', 'max_features': 'sqrt',
-                                    # 'max_depth': 8, 'min_samples_split': 5,
-                                    # 'random_state': 2,
+rf_params = dict({'n_estimators': 1000, 'criterion': 'gini', 'max_features': 'sqrt',
+                                    'max_depth': 8, 'min_samples_split': 5,
+                                    'random_state': 2, 'n_jobs': 8})
 
 gb_params = dict({'learning_rate': 0.01,'n_estimators': 400, 'max_leaf_nodes': 4,
                                     'max_depth': 8, 'min_samples_split': 5,
