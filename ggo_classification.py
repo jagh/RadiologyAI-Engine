@@ -99,42 +99,42 @@ def feature_extraction(ct_image_path, ct_mask_path, study_name, label):
 #######################################################################
 ## CT lung lobes segmentation
 testbed = "testbed/"
-# studies_folder = glob.glob("../09_CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/*")
-# segmentation_folder = os.path.join(testbed, "mosmeddata/lobes_segms/")
-#
-# for std_path in studies_folder:
-#     std_folder = glob.glob(str(std_path + "/*"))
-#     loop_segmentation(std_folder, segmentation_folder)
+studies_folder = glob.glob("../09_CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/*")
+segmentation_folder = os.path.join(testbed, "mosmeddata/lobes_segms/")
+
+for std_path in studies_folder:
+    std_folder = glob.glob(str(std_path + "/*"))
+    loop_segmentation(std_folder, segmentation_folder)
 
 
 #######################################################################
 ## Feature extraction with pyradiomics
-# metadata_path = os.path.join(testbed, "mosmeddata/metadata-covid19_1110.csv")
-# metadata = pd.read_csv(metadata_path, sep=',')
-#
-# ## Set file to write features
-# radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features")
-# Utils().mkdir(radiomics_folder)
-# filename = os.path.join(radiomics_folder, "radiomics_features.csv")
-# f = open(filename, 'w+')
-#
-# for row in metadata.iterrows():
-#     ## Setting files path
-#     ct_file_name = row[1]["study_file"].split(os.path.sep)[-1]
-#     study_name = ct_file_name.split(".nii.gz")[0]
-#     seg_file_name = str(study_name + "-lung_lobes.nii.gz")
-#     label =  row[1]["category"]
-#     ct_segmentation_path = os.path.join(testbed, "mosmeddata/lobes_segms/", seg_file_name)
-#     ct_source_path = str("../09_CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/"+row[1]["study_file"])
-#
-#     ## Feature extraction by image
-#     image_feature_list = feature_extraction(ct_source_path, ct_segmentation_path, study_name, label)
-#
-#     ## writing features by image
-#     csvw = csv.writer(f)
-#     csvw.writerow(image_feature_list)
-#
-# print("metadata: ", metadata.shape)
+metadata_path = os.path.join(testbed, "mosmeddata/metadata-covid19_1110.csv")
+metadata = pd.read_csv(metadata_path, sep=',')
+
+## Set file to write features
+radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features")
+Utils().mkdir(radiomics_folder)
+filename = os.path.join(radiomics_folder, "radiomics_features.csv")
+f = open(filename, 'w+')
+
+for row in metadata.iterrows():
+    ## Setting files path
+    ct_file_name = row[1]["study_file"].split(os.path.sep)[-1]
+    study_name = ct_file_name.split(".nii.gz")[0]
+    seg_file_name = str(study_name + "-lung_lobes.nii.gz")
+    label =  row[1]["category"]
+    ct_segmentation_path = os.path.join(testbed, "mosmeddata/lobes_segms/", seg_file_name)
+    ct_source_path = str("../09_CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/"+row[1]["study_file"])
+
+    ## Feature extraction by image
+    image_feature_list = feature_extraction(ct_source_path, ct_segmentation_path, study_name, label)
+
+    ## writing features by image
+    csvw = csv.writer(f)
+    csvw.writerow(image_feature_list)
+
+print("metadata: ", metadata.shape)
 
 
 #######################################################################
@@ -184,12 +184,9 @@ y_data = data.values[:,1]
 print("X_train: {} || y_train: {} ".format(str(X_data.shape), str(y_data.shape)))
 print("---"*20)
 
-
-
 ## Launcher a machine laerning finetune
 mlc = MLClassifier()
 train_scores, valid_scores = mlc.gridSearch(classifiers, X_data, y_data, oh_flat, n_splits, model_path)
-
 
 ## Plot the learning curves by model
 mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
