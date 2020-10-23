@@ -155,7 +155,7 @@ oh_path = str(ml_folder+'/models/')
 ## Set oh_flat True to use one_hot labels transformation
 oh_flat = False
 ## Set the number of different dataset splits
-n_splits = 2
+n_splits = 5
 
 lr_params = dict({'solver': 'lbfgs', 'max_iter': 500, 'random_state':2,
                                     'multi_class':'multinomial', 'n_jobs': 8})
@@ -171,9 +171,9 @@ gb_params = dict({'learning_rate': 0.01,'n_estimators': 400, 'max_leaf_nodes': 4
 
 ## Set the machine learning classifiers to train
 classifiers = [#MultinomialNB(),
-                LogisticRegression(),
-                RandomForestClassifier(),
-                # GradientBoostingClassifier()
+                LogisticRegression(**lr_params),
+                RandomForestClassifier(**rf_params),
+                GradientBoostingClassifier(**gb_params)
                 ]
 
 ## Read the dataset for training the model
