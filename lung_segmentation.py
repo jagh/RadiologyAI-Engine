@@ -18,10 +18,7 @@ from engine.utils import Utils
 
 from radiomics import featureextractor, firstorder, shape
 import six
-
 import csv
-
-
 
 
 def lung_lobes_segmentation(input_ct):
@@ -88,9 +85,7 @@ ct_mask_path = str(testbed + "/dataset_unibe/outputs/Pat_IPF_1-lung_lobes.nii.gz
 
 ct_image = sitk.ReadImage(ct_image_path)
 ct_mask = sitk.ReadImage(ct_mask_path)
-
 image_feature_list = []
-
 
 ## Get the First Order features
 firstOrderFeatures = firstorder.RadiomicsFirstOrder(ct_image, ct_mask)
