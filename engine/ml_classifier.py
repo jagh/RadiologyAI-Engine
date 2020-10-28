@@ -13,6 +13,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 
+from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 
@@ -76,17 +77,16 @@ class MLClassifier:
     def gridSearch(self, classifiers, X, y, oh_flat, n_splits, model_path):
         """
         Machine learning Workflow:
-        Pipeline([('vect', CountVectorizer()),
-                        ('tfidf', TfidfTransformer()),
-                        ('clf', classifier) ])
+        Pipeline([ ('clf', classifier) ])
         """
         ## Binarize labels in a one-vs-all fashion
         if oh_flat == True:
-            one_hot_encoding = LabelBinarizer()
+            one_hot_encoding = preprocessing.LabelBinarizer()
             y = one_hot_encoding.fit_transform(y)
             # print("enc: ", one_hot_encoding.classes_)
 
             ## Write one hot encoding
+            oh_path = str(model_path+"/y_1hot.pkl")
             oh_file = open(oh_path, "wb")
             pickle.dump(one_hot_encoding, oh_file)
             oh_file.close()
@@ -151,7 +151,6 @@ class MLClassifier:
         return train_scores, valid_scores
 
 
-
     def plot_learning_curves(self, train_scores, test_scores, n_splits):
         """
         Generate the training and validation learning curves plots
@@ -192,3 +191,38 @@ class MLClassifier:
 
         ## Plotting the learning curves
         plt.show()
+
+
+    def model_evaluation(self, model_path, model_name, X, y, oh_flat):
+        """
+        ML evaluation function
+        """
+
+        ## Binarize labels in a one-vs-all fashion
+        if oh_flat == True:
+            oh_path = model_path
+            oh_file = open(oh_path, "rb")
+            one_hot_encoding = pickle.load(oh_file, encoding='bytes')
+            oh_file.close()
+            y = one_hot_encoding.fit_transform(y)
+            print("++ one hot encoding:", one_hot_encoding)
+        else:
+            pass
+
+
+        model_file = open(str(model_path+'/model_'+model_name+'.pkl'), "rb")
+        page_clf = pickle.load(model_file, encoding='bytes')
+        model_file.close()
+
+        predicted = page_clf.predict(X)
+        test_score = np.round_(f1_score(y, predicted, average='macro'), decimals=3)
+        print("--"*20)
+        print("++ NB Performance score: {}".format(test_score))
+
+        ## Confusion matrix from binarize mabels
+        if oh_flat == True:
+            print("++ Confusion matrix: \n {}".format(confusion_matrix(y.argmax(axis=1), predicted.argmax(axis=1))))
+        else:
+            print("++ Confusion matrix: \n {}".format(confusion_matrix(y, predicted)))
+
+        return page_clf, test_score #, predicted
