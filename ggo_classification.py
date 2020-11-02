@@ -224,7 +224,7 @@ gb_params = dict({'criterion': 'friedman_mse', 'init': None,
 
 ## Set the machine learning classifiers to train
 classifiers = [#MultinomialNB(),
-                # LogisticRegression(**lr_params),
+                LogisticRegression(**lr_params),
                 RandomForestClassifier(**rf_params),
                 GradientBoostingClassifier(**gb_params)
                 ]
@@ -238,10 +238,10 @@ print("---"*20)
 
 # ## Launcher a machine laerning finetune
 mlc = MLClassifier()
-train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train, oh_flat, n_splits, model_path)
-
-## Plot the learning curves by model
-mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
+# train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train, oh_flat, n_splits, model_path)
+#
+# ## Plot the learning curves by model
+# mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
 
 
@@ -249,7 +249,8 @@ mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 ## Stage 3: ML evaluation
 
 ## Select the model to evaluate
-model_name = 'RandomForestClassifier'
+model_name = 'GradientBoostingClassifier'
+                #'RandomForestClassifier'
                 #'RandomForestClassifier'
                 #'GradientBoostingClassifier'
 
