@@ -8,22 +8,17 @@ from engine.third_party.lungmask import resunet
 
 
 class LungSegmentations:
-    """
-    Lung lobes segmentation using a lungmask module
-    """
+    """ Bi-lung and lung lobes CT segmentation using a lungmask module """
 
     def __init__(self):
-        print("++ Welcome to Lung Segmentation")
         pass
 
-    def file_segmentation(self, input_ct, seg_method='lobes', batch_size=10):
-        """
-        CT lung lobes segmentation using UNet
-        """
+
+    def ct_segmentation(self, input_ct, seg_method='lobes', batch_size=10):
+        """ Using UNet with the R231 and LTRCLobes Models for CT Segmentation """
 
         if seg_method == 'bi-lung':
             model = mask.get_model('unet', 'R231')
-            print('R231-method')
         elif seg_method == 'lobes':
             model = mask.get_model('unet', 'LTRCLobes')
         else:
@@ -39,7 +34,6 @@ class LungSegmentations:
         return result_out
 
 
-
     def folder_segmentations(self, input_folder, output_folder, seg_method='lobes', batch_size=10):
         """
         CT Lung lobes segmentation for all nii.gz files within the directory.
@@ -52,7 +46,7 @@ class LungSegmentations:
             ct_dcm_format = str(ct_name.split('.nii.gz')[0] + '-' + seg_method + '.nii.gz')
 
             input_ct = sitk.ReadImage(input_path)
-            result_out = self.file_segmentation(input_ct, seg_method, batch_size)
+            result_out = self.ct_segmentation(input_ct, seg_method, batch_size)
 
             Utils().mkdir(output_folder)
             sitk.WriteImage(result_out, str(output_folder+"/"+ct_dcm_format))
