@@ -4,14 +4,14 @@ import pickle
 import time
 
 
-## Machine learning
-from sklearn.model_selection import StratifiedShuffleSplit
+from engine.utils import Utils
 
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn import linear_model
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
@@ -30,6 +30,27 @@ class MLClassifier:
     def __init__(self):
         pass
 
+    def splitting(self, X_data, y_data, ml_folder):
+        ## Create a ML folder and splitting the dataset
+        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.05, random_state=0)
+        for train_index, test_index in eval_split.split(X_data, y_data):
+            X_train, X_test = X_data[train_index], X_data[test_index]
+            y_train, y_test = y_data[train_index], y_data[test_index]
+            #print("train_index: {} || test_index: {} ".format(str(train_index.shape), str(test_index.shape) ))
+        print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
+        print("X_t: {} || y_test: {} ".format(str(X_test.shape), str(y_test.shape) ))
+        print("--"*20)
+
+        ## Define location to write the split dataset
+        dataset_path = str(ml_folder+'/dataset/')
+        Utils().mkdir(dataset_path)
+
+        ## Write the metadata file in txt
+        np.save(str(dataset_path+"/X_train_baseline"), X_train)
+        np.save(str(dataset_path+"/y_train_baseline"), y_train)
+        np.save(str(dataset_path+"/X_test_baseline"), X_test)
+        np.save(str(dataset_path+"/y_test_baseline"), y_test)
+
     def model_training(self, pipe_clf, train_x, train_y, model_path):
         """
         """
@@ -47,7 +68,6 @@ class MLClassifier:
         # print("++ Train F1-Score: {}".format(train_score))
 
         return train_score, pipe_clf
-
 
     def model_testing(self, pipe_clf, valid_x, valid_y, model_path):
         """
@@ -72,7 +92,6 @@ class MLClassifier:
             # print("++ Confusion matrix: \n {}".format(cm))
 
         return valid_score
-
 
     def gridSearch(self, classifiers, X, y, oh_flat, n_splits, model_path):
         """
@@ -150,7 +169,6 @@ class MLClassifier:
 
         return train_scores, valid_scores
 
-
     def plot_learning_curves(self, train_scores, test_scores, n_splits):
         """
         Generate the training and validation learning curves plots
@@ -191,7 +209,6 @@ class MLClassifier:
 
         ## Plotting the learning curves
         plt.show()
-
 
     def model_evaluation(self, model_path, model_name, X, y, oh_flat):
         """
