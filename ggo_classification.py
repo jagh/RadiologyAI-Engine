@@ -40,48 +40,47 @@ def auto_segmentation(studies_folder, segmentation_folder, seg_method):
         ## Launch of automatic CT segmentation
         LungSegmentations().folder_segmentations(input_std, output_std, seg_method, 5)
 
-# auto_segmentation(studies_folder, bilung_segmentation_folder, 'bi-lung')
-# auto_segmentation(studies_folder, lobes_segmentation_folder, 'lobes')
+auto_segmentation(studies_folder, bilung_segmentation_folder, 'bi-lung')
+auto_segmentation(studies_folder, lobes_segmentation_folder, 'lobes')
 
 
 
 #######################################################################
 ## Stage-2: Feature extraction with pyradiomics
 ## https://www.radiomics.io/pyradiomics.html
-# studies_path = "/data/01_UB/CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/"
-# metadata_file = os.path.join(testbed, "mosmeddata/metadata-covid19_1110.csv")
-# metadata = pd.read_csv(metadata_file, sep=',')
-# print("metadata: ", metadata.shape)
-#
-#
-# ## Crete new folder for feature extraction
-# radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features")
-# Utils().mkdir(radiomics_folder)
-#
-# ## Set file name to write a features vector per case
-# filename = os.path.join(radiomics_folder, "radiomics_features.csv")
-# features_file = open(filename, 'w+')
-#
-# for row in metadata.iterrows():
-#     ## Getting the GGO label
-#     label =  row[1]["category"]
-#
-#     ## Locating the ct image file
-#     ct_image_name = row[1]["study_file"].split(os.path.sep)[-1]
-#     ct_image_path = os.path.join(studies_path, label, ct_image_name)
-#     ct_case_id = ct_image_name.split(".nii.gz")[0]
-#
-#     ## Locating the bi-lung segmentation file
-#     bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
-#     bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
-#
-#     ## Feature extraction by image
-#     re = RadiomicsExtractor()
-#     image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
-#
-#     ## writing features by image
-#     csvw = csv.writer(features_file)
-#     csvw.writerow(image_feature_list)
+studies_path = "/data/01_UB/CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/"
+metadata_file = os.path.join(testbed, "mosmeddata/metadata-covid19_1110.csv")
+metadata = pd.read_csv(metadata_file, sep=',')
+print("metadata: ", metadata.shape)
+
+## Crete new folder for feature extraction
+radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features")
+Utils().mkdir(radiomics_folder)
+
+## Set file name to write a features vector per case
+filename = os.path.join(radiomics_folder, "radiomics_features.csv")
+features_file = open(filename, 'w+')
+
+for row in metadata.iterrows():
+    ## Getting the GGO label
+    label =  row[1]["category"]
+
+    ## Locating the ct image file
+    ct_image_name = row[1]["study_file"].split(os.path.sep)[-1]
+    ct_image_path = os.path.join(studies_path, label, ct_image_name)
+    ct_case_id = ct_image_name.split(".nii.gz")[0]
+
+    ## Locating the bi-lung segmentation file
+    bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
+    bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
+
+    ## Feature extraction by image
+    re = RadiomicsExtractor()
+    image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
+
+    ## writing features by image
+    csvw = csv.writer(features_file)
+    csvw.writerow(image_feature_list)
 
 
 
@@ -98,8 +97,8 @@ y_data = data.values[:,1]
 print("---"*20)
 print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
 
-# ## Create a ML folder and splitting the dataset
-# MLClassifier().splitting(X_data, y_data, ml_folder)
+## Create a ML folder and splitting the dataset
+MLClassifier().splitting(X_data, y_data, ml_folder)
 
 
 #######################################################################
@@ -140,6 +139,8 @@ gb_params = dict({'criterion': 'friedman_mse', 'init': None,
                     'max_features': None, 'max_leaf_nodes': None,
                     'n_iter_no_change': None, 'tol':0.01 })
 
+
+
 ## Set the machine learning classifiers to train
 classifiers = [#MultinomialNB(),
                 LogisticRegression(**lr_params),
@@ -154,12 +155,12 @@ y_train = np.load(str(ml_folder+'/dataset/'+"/y_train_baseline.npy"), allow_pick
 print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
 print("---"*20)
 
-# Launcher a machine laerning finetune
-# mlc = MLClassifier()
-# train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train, oh_flat, n_splits, model_path)
+## Launcher a machine laerning finetune
+mlc = MLClassifier()
+train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train, oh_flat, n_splits, model_path)
 
-# ## Plot the learning curves by model
-# mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
+## Plot the learning curves by model
+mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
 
 # #######################################################################
@@ -182,7 +183,11 @@ print("---"*20)
 # page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
 #
 # ## Plot the the confusion matrix by model selected
-# plot_confusion_matrix(page_clf, X_test, y_test)
+# plot_confusion_matrix(page_clf, X_test, y_test, xticks_rotation=15)
 # plt.title(str(model_name+" || F1-score: "+ str(test_score)))
-# plt.xticks(x, months, rotation=25,fontsize=8)
 # plt.show()
+
+
+###################################################################
+## TO DO
+## Compute the HU -> https://www.raddq.com/dicom-processing-segmentation-visualization-in-python/

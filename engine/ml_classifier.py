@@ -32,7 +32,7 @@ class MLClassifier:
 
     def splitting(self, X_data, y_data, ml_folder):
         ## Create a ML folder and splitting the dataset
-        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.05, random_state=0)
+        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
         for train_index, test_index in eval_split.split(X_data, y_data):
             X_train, X_test = X_data[train_index], X_data[test_index]
             y_train, y_test = y_data[train_index], y_data[test_index]
@@ -69,7 +69,7 @@ class MLClassifier:
 
         return train_score, pipe_clf
 
-    def model_testing(self, pipe_clf, valid_x, valid_y, model_path):
+    def model_testing(self, pipe_clf, valid_x, valid_y, model_path, oh_flat):
         """
         """
         ## Open Writing the developing model
@@ -83,7 +83,7 @@ class MLClassifier:
         # print("++ Valid F1-Score: {}".format(valid_score))
 
         ## Computing the confusion matrix
-        oh_flat = False
+        # oh_flat = False
         if oh_flat == True:
             cm = confusion_matrix(valid_y.argmax(axis=1), valid_preditions.argmax(axis=1))
             # print("++ Confusion matrix: \n {}".format(cm))
@@ -141,7 +141,7 @@ class MLClassifier:
 
                     ## Training and validation
                     train_score, pipe_clf = self.model_training(pipe_clf, train_x, train_y, model_path)
-                    valid_score = self.model_testing(pipe_clf, valid_x, valid_y, model_path)
+                    valid_score = self.model_testing(pipe_clf, valid_x, valid_y, model_path, oh_flat)
 
                     ## Filling the scores list to compute the mean and std
                     list_train_scores.append(train_score)

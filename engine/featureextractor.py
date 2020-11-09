@@ -4,7 +4,7 @@ import six
 
 import SimpleITK as sitk
 from radiomics import featureextractor
-from radiomics import firstorder, shape
+from radiomics import firstorder, shape, glcm, glszm, glrlm, ngtdm, gldm
 
 class RadiomicsExtractor:
     """ Extraction of radiomics feactures from a CT images """
@@ -39,5 +39,41 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(shapeFeatures3D.featureValues):
             # print("\t%s: %s" % (key, val))
             image_feature_list.append(val)
+
+
+        glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask)
+        extractor_glcm = glcmFeatures.execute()
+        for (key, val) in six.iteritems(glcmFeatures.featureValues):
+            # print("\t%s: %s" % (key, val))
+            image_feature_list.append(val)
+
+
+        glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask)
+        extractor_glszm = glszmFeatures.execute()
+        for (key, val) in six.iteritems(glszmFeatures.featureValues):
+            # print("\t%s: %s" % (key, val))
+            image_feature_list.append(val)
+
+
+        glrlmFeatures = glrlm.RadiomicsGLRLM(ct_image, ct_mask)
+        extractor_glrlm = glrlmFeatures.execute()
+        for (key, val) in six.iteritems(glrlmFeatures.featureValues):
+            # print("\t%s: %s" % (key, val))
+            image_feature_list.append(val)
+
+
+        ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask)
+        extractor_ngtdm = ngtdmFeatures.execute()
+        for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
+            # print("\t%s: %s" % (key, val))
+            image_feature_list.append(val)
+
+
+        gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask)
+        extractor_gldm = gldmFeatures.execute()
+        for (key, val) in six.iteritems(gldmFeatures.featureValues):
+            # print("\t%s: %s" % (key, val))
+            image_feature_list.append(val)
+
 
         return image_feature_list
