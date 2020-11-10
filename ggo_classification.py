@@ -54,33 +54,36 @@ metadata = pd.read_csv(metadata_file, sep=',')
 print("metadata: ", metadata.shape)
 
 ## Crete new folder for feature extraction
-radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features")
+radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
 Utils().mkdir(radiomics_folder)
 
-## Set file name to write a features vector per case
-filename = os.path.join(radiomics_folder, "radiomics_features.csv")
-features_file = open(filename, 'w+')
 
-for row in metadata.iterrows():
-    ## Getting the GGO label
-    label =  row[1]["category"]
+for lobes_area in range(2):
+    ## Set file name to write a features vector per case
+    lobes_area=str(lobes_area+1)
+    filename = str(radiomics_folder+"/radiomics_features-"+lobes_area+".csv")
+    features_file = open(filename, 'w+')
 
-    ## Locating the ct image file
-    ct_image_name = row[1]["study_file"].split(os.path.sep)[-1]
-    ct_image_path = os.path.join(studies_path, label, ct_image_name)
-    ct_case_id = ct_image_name.split(".nii.gz")[0]
+    for row in metadata.iterrows():
+        ## Getting the GGO label
+        label =  row[1]["category"]
 
-    ## Locating the bi-lung segmentation file
-    bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
-    bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
+        ## Locating the ct image file
+        ct_image_name = row[1]["study_file"].split(os.path.sep)[-1]
+        ct_image_path = os.path.join(studies_path, label, ct_image_name)
+        ct_case_id = ct_image_name.split(".nii.gz")[0]
 
-    ## Feature extraction by image
-    re = RadiomicsExtractor()
-    image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
+        ## Locating the bi-lung segmentation file
+        bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
+        bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
 
-    ## writing features by image
-    csvw = csv.writer(features_file)
-    csvw.writerow(image_feature_list)
+        ## Feature extraction by image
+        re = RadiomicsExtractor(lobes_area)
+        image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
+
+        ## writing features by image
+        csvw = csv.writer(features_file)
+        csvw.writerow(image_feature_list)
 
 
 
@@ -163,29 +166,29 @@ train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train, oh_fl
 mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
 
-# #######################################################################
-# ## Stage 3: ML evaluation
-# from sklearn.metrics import plot_confusion_matrix
-#
-# ## Select the model to evaluate
-# model_name = 'GradientBoostingClassifier'
-#                 #'LogisticRegression'
-#                 #'RandomForestClassifier'
-#
-# ## Read the dataset for training the model
-# X_test = np.load(str(ml_folder+'/dataset/'+"/X_test_baseline.npy"), allow_pickle=True)
-# y_test = np.load(str(ml_folder+'/dataset/'+"/y_test_baseline.npy"), allow_pickle=True)
-# print("X_train: {} || y_train: {} ".format(str(X_test.shape), str(y_test.shape)))
-# print("---"*20)
-#
-# ## ML evaluation
-# mlc = MLClassifier()
-# page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
-#
-# ## Plot the the confusion matrix by model selected
-# plot_confusion_matrix(page_clf, X_test, y_test, xticks_rotation=15)
-# plt.title(str(model_name+" || F1-score: "+ str(test_score)))
-# plt.show()
+#######################################################################
+## Stage 3: ML evaluation
+from sklearn.metrics import plot_confusion_matrix
+
+## Select the model to evaluate
+model_name = 'GradientBoostingClassifier'
+                #'LogisticRegression'
+                #'RandomForestClassifier'
+
+## Read the dataset for training the model
+X_test = np.load(str(ml_folder+'/dataset/'+"/X_test_baseline.npy"), allow_pickle=True)
+y_test = np.load(str(ml_folder+'/dataset/'+"/y_test_baseline.npy"), allow_pickle=True)
+print("X_train: {} || y_train: {} ".format(str(X_test.shape), str(y_test.shape)))
+print("---"*20)
+
+## ML evaluation
+mlc = MLClassifier()
+page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
+
+## Plot the the confusion matrix by model selected
+plot_confusion_matrix(page_clf, X_test, y_test, xticks_rotation=15)
+plt.title(str(model_name+" || F1-score: "+ str(test_score)))
+plt.show()
 
 
 ###################################################################
