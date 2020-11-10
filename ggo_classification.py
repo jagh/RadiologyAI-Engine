@@ -98,23 +98,19 @@ for lobes_area in range(2):
 
 ## Step-1: Define features, labels and dataset spliting
 ## Set and Read the dataset for training the model
-feature_extration_file = os.path.join(testbed, "mosmeddata/radiomics_features/radiomics_features-full_lung-Balance.csv")
+feature_extration_file = os.path.join(testbed,
+            "mosmeddata/radiomics_features/radiomics_features-full_lung.csv")
 ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
 data = pd.read_csv(feature_extration_file, sep=',', header=0)
 
 ## Set features and labels, discard the two cases for a GGO 'CT-4'
-X_data = data.values[:,2:]  #   1107,2:]
-y_data = data.values[:,1]   #   1107,1]
-
-## Create a ML folder and splitting the dataset
-MLClassifier().splitting(X_data, y_data, ml_folder)
-
+X_data = data.values[:,2:]  #[:1107,2:]
+y_data = data.values[:,1]   #[:1107,1]
 print("---"*20)
 print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
 
-# ## One-hot labels encoding
-# ggo_categories = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
-# y_data_1h = pd.get_dummies(data=y_data, columns=ggo_categories)
+## Create a ML folder and splitting the dataset
+MLClassifier().splitting(X_data, y_data, ml_folder)
 
 
 
@@ -124,21 +120,18 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
+
 ## Define location to write the model
 model_path = str(ml_folder+'/models/')
 Utils().mkdir(model_path)
 
-## Define location to write the one-hot transformation fot the labels
-oh_path = str(ml_folder+'/models/')
-
-## ML hyperparameters
-## Set oh_flat True to use one_hot labels transformation
+## Use oh_flat to encode labels as one-hot for RandomForestClassifier
 oh_flat = False
 
 ## Set the number of different dataset splits
-n_splits = 2
+n_splits = 5
 
-## 'newton-cg', 'lbfgs', 'liblinear'
+## LogisticRegression parameters  'newton-cg', 'lbfgs'
 lr_params = dict({'solver': 'newton-cg', 'max_iter': 500, 'random_state':2,
                             'multi_class':'multinomial', 'n_jobs': 8})
 
@@ -151,18 +144,16 @@ rf_params = dict({'bootstrap': True, 'class_weight': None,
 
 ## https://medium.com/all-things-ai/in-depth-parameter-tuning-for-gradient-boosting-3363992e9bae
 gb_params = dict({'criterion': 'friedman_mse', 'init': None,
-                    'learning_rate': 0.5, 'loss': 'deviance', 'max_depth': 3,
+                    'learning_rate': 0.1, 'loss': 'deviance', 'max_depth': 3,
                     'min_samples_leaf': 0.50, 'min_samples_split': 2,
-                    'n_estimators': 100, 'random_state': None,
+                    'n_estimators': 1000, 'random_state': None,
                     'max_features': None, 'max_leaf_nodes': None,
                     'n_iter_no_change': None, 'tol':0.01})
 
-
-
 ## Set the machine learning classifiers to train
 classifiers = [ LogisticRegression(**lr_params),
-                GradientBoostingClassifier(**gb_params),
                 RandomForestClassifier(**rf_params),
+                GradientBoostingClassifier(**gb_params),
                 ]
 
 ## Read the dataset for training the model
@@ -173,7 +164,8 @@ print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape
 
 ## Launcher a machine laerning finetune
 mlc = MLClassifier()
-train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train, oh_flat, n_splits, model_path)
+train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train,
+                                                    oh_flat, n_splits, model_path)
 
 ## Plot the learning curves by model
 mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
@@ -184,16 +176,15 @@ mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 from sklearn.metrics import plot_confusion_matrix
 
 ## Select the model to evaluate
-model_name = 'RandomForestClassifier'
-                #'LogisticRegression'
+model_name = 'LogisticRegression'
                 #'RandomForestClassifier'
                 #'GradientBoostingClassifier'
 
 ## Read the dataset for training the model
 X_test = np.load(str(ml_folder+'/dataset/'+"/X_test_baseline.npy"), allow_pickle=True)
 y_test = np.load(str(ml_folder+'/dataset/'+"/y_test_baseline.npy"), allow_pickle=True)
-print("X_train: {} || y_train: {} ".format(str(X_test.shape), str(y_test.shape)))
 print("---"*20)
+print("X_eval: {} || y_eval: {} ".format(str(X_test.shape), str(y_test.shape)))
 
 ## ML evaluation
 mlc = MLClassifier()
@@ -204,7 +195,8 @@ labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
 plot_confusion_matrix(page_clf, X_test, y_test,
                             display_labels=labels_name,
                             cmap=plt.cm.Blues,
-                            normalize='true') #, xticks_rotation=15)
+                            # normalize='true'
+                            ) #, xticks_rotation=15)
 plt.title(str(model_name+" || F1-score: "+ str(test_score)))
 plt.show()
 

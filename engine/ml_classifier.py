@@ -3,9 +3,6 @@ import numpy as np
 import pickle
 import time
 
-
-from engine.utils import Utils
-
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn import linear_model
@@ -16,6 +13,8 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
+
+from engine.utils import Utils
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -32,14 +31,13 @@ class MLClassifier:
 
     def splitting(self, X_data, y_data, ml_folder):
         ## Create a ML folder and splitting the dataset
-        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.5, random_state=0)
+        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
         for train_index, test_index in eval_split.split(X_data, y_data):
             X_train, X_test = X_data[train_index], X_data[test_index]
             y_train, y_test = y_data[train_index], y_data[test_index]
             #print("train_index: {} || test_index: {} ".format(str(train_index.shape), str(test_index.shape) ))
-        # print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
-        # print("X_test: {} || y_test: {} ".format(str(X_test.shape), str(y_test.shape) ))
-        # print("--"*20)
+        print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
+        print("X_test: {} || y_test: {} ".format(str(X_test.shape), str(y_test.shape) ))
 
         ## Define location to write the split dataset
         dataset_path = str(ml_folder+'/dataset/')
@@ -91,28 +89,12 @@ class MLClassifier:
         else:
             cm = confusion_matrix(valid_y, valid_preditions)
             # print("++ Confusion matrix: \n {}".format(cm))
-
         return valid_score
 
     def gridSearch(self, classifiers, X, y, oh_flat, n_splits, model_path):
         """
-        Machine learning Workflow:
-        Pipeline([ ('clf', classifier) ])
+        ML Pipeline: Pipeline([('clf', classifier)])
         """
-        # ## Binarize labels in a one-vs-all fashion
-        # if oh_flat == True:
-        #     one_hot_encoding = preprocessing.LabelBinarizer()
-        #     y = one_hot_encoding.fit_transform(y)
-        #     # print("enc: ", one_hot_encoding.classes_)
-        #
-        #     ## Write one hot encoding
-        #     oh_path = str(model_path+"/y_1hot.pkl")
-        #     oh_file = open(oh_path, "wb")
-        #     pickle.dump(one_hot_encoding, oh_file)
-        #     oh_file.close()
-        # else:
-        #     pass
-
         train_scores = dict()
         valid_scores = dict()
         for classifier in classifiers:
@@ -122,16 +104,14 @@ class MLClassifier:
             print("--"*20)
             print("++ clf: {}".format(model_name))
 
-            # ## Binarize labels in a one-vs-all fashion
-            # if model_name is 'RandomForestClassifier':
-            #     labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
-            #     y = pd.get_dummies(data=y, columns=labels_name).values
-            #     oh_flat = True
-            # else:
-            #     pass
+            ## Encode labes as one-hot
+            if model_name is 'RandomForestClassifier' and oh_flat is True:
+                labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+                y = pd.get_dummies(data=y, columns=labels_name).values
+            else:
+                oh_flat = False
 
             test_sizes = [0.50, 0.40, 0.30, 0.20, 0.15, 0.10]
-            # train_sizes = [1417, 1526, 1635, 1744, 1853, 1962]
             for test_size in test_sizes:
                 """
                 Train each model over different test sizes to split the dataset
@@ -224,31 +204,31 @@ class MLClassifier:
         ML evaluation function
         """
 
-        ## Binarize labels in a one-vs-all fashion
-        if oh_flat == True:
-            oh_path = model_path
-            oh_file = open(oh_path, "rb")
-            one_hot_encoding = pickle.load(oh_file, encoding='bytes')
-            oh_file.close()
-            y = one_hot_encoding.fit_transform(y)
-            print("++ one hot encoding:", one_hot_encoding)
-        else:
-            pass
-
-
         model_file = open(str(model_path+'/model_'+model_name+'.pkl'), "rb")
         page_clf = pickle.load(model_file, encoding='bytes')
         model_file.close()
 
         predicted = page_clf.predict(X)
-        test_score = np.round_(f1_score(y, predicted, average='macro'), decimals=3)
-        print("--"*20)
-        print("++ NB Performance score: {}".format(test_score))
+
+        ## Encode labes as one-hot
+        if model_name is 'RandomForestClassifier' and oh_flat is True:
+            labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+            y = pd.get_dummies(data=y, columns=labels_name).values
+            predicted = pd.get_dummies(data=predicted, columns=labels_name).values
+        else:
+            oh_flat = False
 
         ## Confusion matrix from binarize mabels
         if oh_flat == True:
-            print("++ Confusion matrix: \n {}".format(confusion_matrix(y.argmax(axis=1), predicted.argmax(axis=1))))
+            confusion_m = confusion_matrix(y.argmax(axis=1), predicted.argmax(axis=1))
+            test_score = np.round_(f1_score(y.argmax(axis=1), predicted.argmax(axis=1),
+                                                    average='macro'), decimals=3)
+            print("++ Confusion matrix: \n {}".format(confusion_m))
+            print("++ Performance score: {}".format(test_score))
         else:
-            print("++ Confusion matrix: \n {}".format(confusion_matrix(y, predicted)))
+            confusion_m = confusion_matrix(y, predicted)
+            test_score = np.round_(f1_score(y, predicted, average='macro'), decimals=3)
+            print("++ Confusion matrix: \n {}".format(confusion_m))
+            print("++ Performance score: {}".format(test_score))
 
         return page_clf, test_score #, predicted
