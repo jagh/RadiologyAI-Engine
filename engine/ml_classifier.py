@@ -32,14 +32,14 @@ class MLClassifier:
 
     def splitting(self, X_data, y_data, ml_folder):
         ## Create a ML folder and splitting the dataset
-        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
+        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.5, random_state=0)
         for train_index, test_index in eval_split.split(X_data, y_data):
             X_train, X_test = X_data[train_index], X_data[test_index]
             y_train, y_test = y_data[train_index], y_data[test_index]
             #print("train_index: {} || test_index: {} ".format(str(train_index.shape), str(test_index.shape) ))
-        print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
-        print("X_t: {} || y_test: {} ".format(str(X_test.shape), str(y_test.shape) ))
-        print("--"*20)
+        # print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
+        # print("X_test: {} || y_test: {} ".format(str(X_test.shape), str(y_test.shape) ))
+        # print("--"*20)
 
         ## Define location to write the split dataset
         dataset_path = str(ml_folder+'/dataset/')
@@ -54,6 +54,7 @@ class MLClassifier:
     def model_training(self, pipe_clf, train_x, train_y, model_path):
         """
         """
+
         ## Model training
         pipe_clf.fit(train_x, train_y)
 
@@ -98,19 +99,19 @@ class MLClassifier:
         Machine learning Workflow:
         Pipeline([ ('clf', classifier) ])
         """
-        ## Binarize labels in a one-vs-all fashion
-        if oh_flat == True:
-            one_hot_encoding = preprocessing.LabelBinarizer()
-            y = one_hot_encoding.fit_transform(y)
-            # print("enc: ", one_hot_encoding.classes_)
-
-            ## Write one hot encoding
-            oh_path = str(model_path+"/y_1hot.pkl")
-            oh_file = open(oh_path, "wb")
-            pickle.dump(one_hot_encoding, oh_file)
-            oh_file.close()
-        else:
-            pass
+        # ## Binarize labels in a one-vs-all fashion
+        # if oh_flat == True:
+        #     one_hot_encoding = preprocessing.LabelBinarizer()
+        #     y = one_hot_encoding.fit_transform(y)
+        #     # print("enc: ", one_hot_encoding.classes_)
+        #
+        #     ## Write one hot encoding
+        #     oh_path = str(model_path+"/y_1hot.pkl")
+        #     oh_file = open(oh_path, "wb")
+        #     pickle.dump(one_hot_encoding, oh_file)
+        #     oh_file.close()
+        # else:
+        #     pass
 
         train_scores = dict()
         valid_scores = dict()
@@ -120,6 +121,14 @@ class MLClassifier:
             model_name = classifier.__class__.__name__
             print("--"*20)
             print("++ clf: {}".format(model_name))
+
+            # ## Binarize labels in a one-vs-all fashion
+            # if model_name is 'RandomForestClassifier':
+            #     labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+            #     y = pd.get_dummies(data=y, columns=labels_name).values
+            #     oh_flat = True
+            # else:
+            #     pass
 
             test_sizes = [0.50, 0.40, 0.30, 0.20, 0.15, 0.10]
             # train_sizes = [1417, 1526, 1635, 1744, 1853, 1962]
@@ -200,11 +209,11 @@ class MLClassifier:
             # axes[m_index].set_yscale('log')
 
             axes[m_index].fill_between(train_sizes, train_scores_mean - train_scores_std,
-                             train_scores_mean + train_scores_std, alpha=0.1, color="r")
+                             train_scores_mean + train_scores_std, alpha=0.1, color="darkturquoise")
             axes[m_index].fill_between(train_sizes, test_scores_mean - test_scores_std,
-                             test_scores_mean + test_scores_std, alpha=0.1, color="g")
-            axes[m_index].plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
-            axes[m_index].plot(train_sizes, test_scores_mean, 'o-', color="g", label="Validation score")
+                             test_scores_mean + test_scores_std, alpha=0.1, color="mediumpurple")
+            axes[m_index].plot(train_sizes, train_scores_mean, 'o-', color="darkturquoise", label="Training score")
+            axes[m_index].plot(train_sizes, test_scores_mean, 'o-', color="mediumpurple", label="Validation score")
             axes[m_index].legend(loc="best")
 
         ## Plotting the learning curves
