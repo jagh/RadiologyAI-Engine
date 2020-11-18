@@ -22,10 +22,10 @@ import matplotlib.pyplot as plt
 #######################################################################
 ## Launcher settings to classify a ground-glass opacities score
 #######################################################################
-
 ## Dataset path definitions
 studies_folder = glob.glob("/data/01_UB/CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/*")
 testbed = "testbed/"
+
 bilung_segmentation_folder = os.path.join(testbed, "mosmeddata/segmentations_bi-lung/")
 lobes_segmentation_folder = os.path.join(testbed, "mosmeddata/segmentations_lobes/")
 
@@ -43,8 +43,8 @@ def auto_segmentation(studies_folder, segmentation_folder, seg_method):
         ## Launch of automatic CT segmentation
         LungSegmentations().folder_segmentations(input_std, output_std, seg_method, 5)
 
-auto_segmentation(studies_folder, bilung_segmentation_folder, 'bi-lung')
-auto_segmentation(studies_folder, lobes_segmentation_folder, 'lobes')
+# auto_segmentation(studies_folder, bilung_segmentation_folder, 'bi-lung')
+# auto_segmentation(studies_folder, lobes_segmentation_folder, 'lobes')
 
 
 
@@ -61,9 +61,9 @@ radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
 Utils().mkdir(radiomics_folder)
 
 ## Loop to extract features for an especific segmentation label
-## Label 1 is a Right lung segmentation
-## Label 2 is a Left lung segmentation
-for lobes_area in range(2):
+## bi-lung: {l1: right, l2: left}
+## lobes: {l1: l_upper, l2: l_lower, l3: r_upper , l4: r_middle, l5: r_lower}
+for lobes_area in range(5):
 
     ## Set file name to write a features vector per case
     lobes_area=str(lobes_area+1)
@@ -79,13 +79,22 @@ for lobes_area in range(2):
         ct_image_path = os.path.join(studies_path, label, ct_image_name)
         ct_case_id = ct_image_name.split(".nii.gz")[0]
 
-        ## Locating the bi-lung segmentation file
-        bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
-        bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
+        # ## Locating the bi-lung segmentation file
+        # bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
+        # bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
+        #
+        # ##Feature extraction by image
+        # re = RadiomicsExtractor(lobes_area)
+        # image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
+
+
+        ## Locating the lobes segmentation file
+        lobes_segmentation_name = str(ct_case_id + "-lobes.nii.gz")
+        lobes_segmentation_path = os.path.join(lobes_segmentation_folder, label, lobes_segmentation_name)
 
         ## Feature extraction by image
         re = RadiomicsExtractor(lobes_area)
-        image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
+        image_feature_list = re.feature_extractor(ct_image_path, lobes_segmentation_path, ct_case_id, label)
 
         ## writing features by image
         csvw = csv.writer(features_file)
@@ -96,21 +105,72 @@ for lobes_area in range(2):
 #######################################################################
 ## Stage 3: Machin learning pipeline
 
-## Step-1: Define features, labels and dataset spliting
-## Set and Read the dataset for training the model
-feature_extration_file = os.path.join(testbed,
-            "mosmeddata/radiomics_features/radiomics_features-full_lung.csv")
+# ## Step-1: From one file define features, labels and dataset spliting
+# ## Set and Read the dataset for training the model
+# feature_extration_file = os.path.join(testbed,
+#             "mosmeddata/radiomics_features/radiomics_features-full_lung.csv")
+# ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
+# data = pd.read_csv(feature_extration_file, sep=',', header=0)
+#
+# ## Set features and labels, discard the two cases for a GGO 'CT-4'
+# X_data = data.values[:,2:]  #[:1107,2:]
+# y_data = data.values[:,1]   #[:1107,1]
+# print("---"*20)
+# print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
+#
+# ## Create a ML folder and splitting the dataset
+# MLClassifier().splitting(X_data, y_data, ml_folder)
+
+
+## Step-1: From multiple files define features, labels and spliting the dataset
+def load_features(file_path):
+    """Read features and labels per file"""
+    data = pd.read_csv(file_path, sep=',', header=None)
+    ## Set features and labels, discard the two cases for a GGO 'CT-4'
+    X_data = data.values[:,2:]  #[:1107,2:]
+    y_data = data.values[:,1]   #[:1107,1]
+    print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
+    return X_data, y_data
+
+# ## Set bi-lungs files path
+# radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
+# left_lung = os.path.join(radiomics_folder, "radiomics_features-left_lung-Balanced.csv")
+# right_lung = os.path.join(radiomics_folder, "radiomics_features-right_lung-Balanced.csv")
+#
+# X_left_lung, y_left_lung = load_features(left_lung)
+# X_right_lung, y_right_lung = load_features(right_lung)
+#
+# X_data = np.concatenate((X_left_lung, X_right_lung), axis=1)
+# y_data = y_left_lung
+#
+# # Create a ML folder and splitting the dataset
+# ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
+# MLClassifier().splitting(X_data, y_data, ml_folder)
+
+
+## Set lungs lobes files path
+radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
+left_lower = os.path.join(radiomics_folder, "radiomics_features-left_lower-Balanced.csv")
+left_upper = os.path.join(radiomics_folder, "radiomics_features-left_upper-Balanced.csv")
+right_lower = os.path.join(radiomics_folder, "radiomics_features-right_lower-Balanced.csv")
+right_middle = os.path.join(radiomics_folder, "radiomics_features-right_middle-Balanced.csv")
+right_upper = os.path.join(radiomics_folder, "radiomics_features-right_upper-Balanced.csv")
+
+X_left_lower, y_left_lower = load_features(left_lower)
+X_left_upper, y_left_upper = load_features(left_upper)
+X_right_lower, y_right_lower = load_features(right_lower)
+X_right_middle, y_right_middle = load_features(right_middle)
+X_right_upper, y_right_upper = load_features(right_upper)
+
+X_data = np.concatenate((X_left_lower, X_left_upper,
+                        X_right_lower, X_right_middle, X_right_upper), axis=1)
+y_data = y_left_lower
+
+# Create a ML folder and splitting the dataset
 ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
-data = pd.read_csv(feature_extration_file, sep=',', header=0)
-
-## Set features and labels, discard the two cases for a GGO 'CT-4'
-X_data = data.values[:,2:]  #[:1107,2:]
-y_data = data.values[:,1]   #[:1107,1]
-print("---"*20)
-print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
-
-## Create a ML folder and splitting the dataset
 MLClassifier().splitting(X_data, y_data, ml_folder)
+
+
 
 
 
@@ -122,6 +182,7 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
 
 ## Define location to write the model
+ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
 model_path = str(ml_folder+'/models/')
 Utils().mkdir(model_path)
 
@@ -154,6 +215,7 @@ gb_params = dict({'criterion': 'friedman_mse', 'init': None,
 classifiers = [ LogisticRegression(**lr_params),
                 RandomForestClassifier(**rf_params),
                 GradientBoostingClassifier(**gb_params),
+
                 ]
 
 ## Read the dataset for training the model
@@ -171,8 +233,8 @@ train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train,
 mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
 
-#######################################################################
-## Step 3: Model evaluation
+######################################################################
+# Step 3: Model evaluation
 from sklearn.metrics import plot_confusion_matrix
 
 ## Select the model to evaluate
@@ -209,3 +271,4 @@ plt.show()
 ## Tk-3: Merge radiomics features by segmentations areas
 ## Tk-4: Compute the HU by segmentation areas
 ## Ref -> https://www.raddq.com/dicom-processing-segmentation-visualization-in-python/
+## Ref-2 -> https://vincentblog.xyz/posts/medical-images-in-python-computed-tomography

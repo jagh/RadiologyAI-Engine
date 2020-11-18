@@ -31,7 +31,7 @@ class MLClassifier:
 
     def splitting(self, X_data, y_data, ml_folder):
         ## Create a ML folder and splitting the dataset
-        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
+        eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.05, random_state=0)
         for train_index, test_index in eval_split.split(X_data, y_data):
             X_train, X_test = X_data[train_index], X_data[test_index]
             y_train, y_test = y_data[train_index], y_data[test_index]
