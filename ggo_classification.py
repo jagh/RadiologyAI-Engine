@@ -48,128 +48,118 @@ def auto_segmentation(studies_folder, segmentation_folder, seg_method):
 
 
 
-#######################################################################
-## Stage-2: Feature extraction with pyradiomics
-## https://www.radiomics.io/pyradiomics.html
-studies_path = "/data/01_UB/CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/"
-metadata_file = os.path.join(testbed, "mosmeddata/metadata-covid19_1110.csv")
-metadata = pd.read_csv(metadata_file, sep=',')
-print("metadata: ", metadata.shape)
-
-## Crete new folder for feature extraction
-radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
-Utils().mkdir(radiomics_folder)
-
-## Loop to extract features for an especific segmentation label
-## bi-lung: {l1: right, l2: left}
-## lobes: {l1: l_upper, l2: l_lower, l3: r_upper , l4: r_middle, l5: r_lower}
-for lobes_area in range(5):
-
-    ## Set file name to write a features vector per case
-    lobes_area=str(lobes_area+1)
-    filename = str(radiomics_folder+"/radiomics_features-"+lobes_area+".csv")
-    features_file = open(filename, 'w+')
-
-    for row in metadata.iterrows():
-        ## Getting the GGO label
-        label =  row[1]["category"]
-
-        ## Locating the ct image file
-        ct_image_name = row[1]["study_file"].split(os.path.sep)[-1]
-        ct_image_path = os.path.join(studies_path, label, ct_image_name)
-        ct_case_id = ct_image_name.split(".nii.gz")[0]
-
-        # ## Locating the bi-lung segmentation file
-        # bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
-        # bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
-        #
-        # ##Feature extraction by image
-        # re = RadiomicsExtractor(lobes_area)
-        # image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
-
-
-        ## Locating the lobes segmentation file
-        lobes_segmentation_name = str(ct_case_id + "-lobes.nii.gz")
-        lobes_segmentation_path = os.path.join(lobes_segmentation_folder, label, lobes_segmentation_name)
-
-        ## Feature extraction by image
-        re = RadiomicsExtractor(lobes_area)
-        image_feature_list = re.feature_extractor(ct_image_path, lobes_segmentation_path, ct_case_id, label)
-
-        ## writing features by image
-        csvw = csv.writer(features_file)
-        csvw.writerow(image_feature_list)
-
-
-
-#######################################################################
-## Stage 3: Machin learning pipeline
-
-# ## Step-1: From one file define features, labels and dataset spliting
-# ## Set and Read the dataset for training the model
-# feature_extration_file = os.path.join(testbed,
-#             "mosmeddata/radiomics_features/radiomics_features-full_lung.csv")
-# ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
-# data = pd.read_csv(feature_extration_file, sep=',', header=0)
+# #######################################################################
+# ## Stage-2: Feature extraction with pyradiomics
+# ## https://www.radiomics.io/pyradiomics.html
+# studies_path = "/data/01_UB/CT_Datasets/dataset_covid-1110_ct-scans/COVID19_1110/studies/"
+# metadata_file = os.path.join(testbed, "mosmeddata/metadata-covid19_1110.csv")
+# metadata = pd.read_csv(metadata_file, sep=',')
+# print("metadata: ", metadata.shape)
 #
-# ## Set features and labels, discard the two cases for a GGO 'CT-4'
-# X_data = data.values[:,2:]  #[:1107,2:]
-# y_data = data.values[:,1]   #[:1107,1]
-# print("---"*20)
-# print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
+# ## Crete new folder for feature extraction
+# radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
+# Utils().mkdir(radiomics_folder)
 #
-# ## Create a ML folder and splitting the dataset
-# MLClassifier().splitting(X_data, y_data, ml_folder)
+# ## Loop to extract features for an especific segmentation label
+# ## bi-lung: {l1: right, l2: left}
+# ## lobes: {l1: l_upper, l2: l_lower, l3: r_upper , l4: r_middle, l5: r_lower}
+# for lobes_area in range(5):
+#
+#     ## Set file name to write a features vector per case
+#     lobes_area=str(lobes_area+1)
+#     filename = str(radiomics_folder+"/radiomics_features-"+lobes_area+".csv")
+#     features_file = open(filename, 'w+')
+#
+#     for row in metadata.iterrows():
+#         ## Getting the GGO label
+#         label =  row[1]["category"]
+#
+#         ## Locating the ct image file
+#         ct_image_name = row[1]["study_file"].split(os.path.sep)[-1]
+#         ct_image_path = os.path.join(studies_path, label, ct_image_name)
+#         ct_case_id = ct_image_name.split(".nii.gz")[0]
+#
+#         # ## Locating the bi-lung segmentation file
+#         # bilung_segmentation_name = str(ct_case_id + "-bi-lung.nii.gz")
+#         # bilung_segmentation_path = os.path.join(bilung_segmentation_folder, label, bilung_segmentation_name)
+#         #
+#         # ##Feature extraction by image
+#         # re = RadiomicsExtractor(lobes_area)
+#         # image_feature_list = re.feature_extractor(ct_image_path, bilung_segmentation_path, ct_case_id, label)
+#
+#
+#         ## Locating the lobes segmentation file
+#         lobes_segmentation_name = str(ct_case_id + "-lobes.nii.gz")
+#         lobes_segmentation_path = os.path.join(lobes_segmentation_folder, label, lobes_segmentation_name)
+#
+#         ## Feature extraction by image
+#         re = RadiomicsExtractor(lobes_area)
+#         image_feature_list = re.feature_extractor(ct_image_path, lobes_segmentation_path, ct_case_id, label)
+#
+#         ## writing features by image
+#         csvw = csv.writer(features_file)
+#         csvw.writerow(image_feature_list)
 
+
+
+#######################################################################
+## Stage 3: Machine learning pipeline
 
 ## Step-1: From multiple files define features, labels and spliting the dataset
 def load_features(file_path):
     """Read features and labels per file"""
     data = pd.read_csv(file_path, sep=',', header=None)
     ## Set features and labels, discard the two cases for a GGO 'CT-4'
-    X_data = data.values[:,2:]  #[:1107,2:]
-    y_data = data.values[:,1]   #[:1107,1]
+    X_data = data.values[:655,3:]  #[:1107,2:]
+    y_data = data.values[:655,2]   #[:1107,1]
     print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
     return X_data, y_data
 
-# ## Set bi-lungs files path
+# ##---------------------------------------
+# ## Set full-lungs files path
 # radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
-# left_lung = os.path.join(radiomics_folder, "radiomics_features-left_lung-Balanced.csv")
-# right_lung = os.path.join(radiomics_folder, "radiomics_features-right_lung-Balanced.csv")
-#
-# X_left_lung, y_left_lung = load_features(left_lung)
-# X_right_lung, y_right_lung = load_features(right_lung)
-#
-# X_data = np.concatenate((X_left_lung, X_right_lung), axis=1)
-# y_data = y_left_lung
-#
-# # Create a ML folder and splitting the dataset
-# ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
-# MLClassifier().splitting(X_data, y_data, ml_folder)
+# left_lung = os.path.join(radiomics_folder, "radiomics_features-full_lung.csv")
+# X_data, y_data = load_features(left_lung)
 
 
-## Set lungs lobes files path
+##---------------------------------------
+## Set bi-lungs files path
 radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
-left_lower = os.path.join(radiomics_folder, "radiomics_features-left_lower-Balanced.csv")
-left_upper = os.path.join(radiomics_folder, "radiomics_features-left_upper-Balanced.csv")
-right_lower = os.path.join(radiomics_folder, "radiomics_features-right_lower-Balanced.csv")
-right_middle = os.path.join(radiomics_folder, "radiomics_features-right_middle-Balanced.csv")
-right_upper = os.path.join(radiomics_folder, "radiomics_features-right_upper-Balanced.csv")
+left_lung = os.path.join(radiomics_folder, "radiomics_features-left_lung.csv")
+right_lung = os.path.join(radiomics_folder, "radiomics_features-right_lung.csv")
 
-X_left_lower, y_left_lower = load_features(left_lower)
-X_left_upper, y_left_upper = load_features(left_upper)
-X_right_lower, y_right_lower = load_features(right_lower)
-X_right_middle, y_right_middle = load_features(right_middle)
-X_right_upper, y_right_upper = load_features(right_upper)
+X_left_lung, y_left_lung = load_features(left_lung)
+X_right_lung, y_right_lung = load_features(right_lung)
 
-X_data = np.concatenate((X_left_lower, X_left_upper,
-                        X_right_lower, X_right_middle, X_right_upper), axis=1)
-y_data = y_left_lower
+X_data = np.concatenate((X_left_lung, X_right_lung), axis=1)
+y_data = y_left_lung
+print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
 
+
+# ##---------------------------------------
+# ## Set lungs lobes files path
+# radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
+# left_lower = os.path.join(radiomics_folder, "radiomics_features-left_lower-Balanced.csv")
+# left_upper = os.path.join(radiomics_folder, "radiomics_features-left_upper-Balanced.csv")
+# right_lower = os.path.join(radiomics_folder, "radiomics_features-right_lower-Balanced.csv")
+# right_middle = os.path.join(radiomics_folder, "radiomics_features-right_middle-Balanced.csv")
+# right_upper = os.path.join(radiomics_folder, "radiomics_features-right_upper-Balanced.csv")
+#
+# X_left_lower, y_left_lower = load_features(left_lower)
+# X_left_upper, y_left_upper = load_features(left_upper)
+# X_right_lower, y_right_lower = load_features(right_lower)
+# X_right_middle, y_right_middle = load_features(right_middle)
+# X_right_upper, y_right_upper = load_features(right_upper)
+#
+# X_data = np.concatenate((X_left_lower, X_left_upper,
+#                         X_right_lower, X_right_middle, X_right_upper), axis=1)
+# y_data = y_left_lower
+
+
+##---------------------------------------
 # Create a ML folder and splitting the dataset
 ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
 MLClassifier().splitting(X_data, y_data, ml_folder)
-
 
 
 
@@ -199,23 +189,23 @@ lr_params = dict({'solver': 'newton-cg', 'max_iter': 500, 'random_state':2,
 ## https://www.analyticsvidhya.com/blog/2020/03/beginners-guide-random-forest-hyperparameter-tuning/
 rf_params = dict({'bootstrap': True, 'class_weight': None,
                     'criterion': 'gini', 'n_estimators': 2000,
-                    'max_features': 'auto', 'max_depth': 5,
+                    'max_features': 'auto', 'max_depth': 4,
                     'min_samples_leaf': 1, 'min_samples_split': 2,
                     'random_state': 2, 'n_jobs': 8})
 
 ## https://medium.com/all-things-ai/in-depth-parameter-tuning-for-gradient-boosting-3363992e9bae
 gb_params = dict({'criterion': 'friedman_mse', 'init': None,
-                    'learning_rate': 0.1, 'loss': 'deviance', 'max_depth': 3,
-                    'min_samples_leaf': 0.50, 'min_samples_split': 2,
-                    'n_estimators': 1000, 'random_state': None,
+                    'learning_rate': 0.1, 'loss': 'deviance', 'max_depth': 5,
+                    'min_samples_leaf': 1, 'min_samples_split': 2,
+                    'n_estimators': 500, 'random_state': None,
                     'max_features': None, 'max_leaf_nodes': None,
                     'n_iter_no_change': None, 'tol':0.01})
 
 ## Set the machine learning classifiers to train
-classifiers = [ LogisticRegression(**lr_params),
+classifiers = [
+                LogisticRegression(**lr_params),
                 RandomForestClassifier(**rf_params),
                 GradientBoostingClassifier(**gb_params),
-
                 ]
 
 ## Read the dataset for training the model
@@ -224,13 +214,14 @@ X_train = np.load(str(ml_folder+'/dataset/'+"/X_train_baseline.npy"), allow_pick
 y_train = np.load(str(ml_folder+'/dataset/'+"/y_train_baseline.npy"), allow_pickle=True)
 print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
 
-## Launcher a machine laerning finetune
-mlc = MLClassifier()
-train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train,
-                                                    oh_flat, n_splits, model_path)
+# ## Launcher a machine laerning finetune
+# mlc = MLClassifier()
+# train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train,
+#                                                     oh_flat, n_splits, model_path)
+#
+# ## Plot the learning curves by model
+# mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
-## Plot the learning curves by model
-mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
 
 ######################################################################
@@ -238,7 +229,8 @@ mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 from sklearn.metrics import plot_confusion_matrix
 
 ## Select the model to evaluate
-model_name = 'LogisticRegression'
+model_name = 'GradientBoostingClassifier'
+                #'LogisticRegression'
                 #'RandomForestClassifier'
                 #'GradientBoostingClassifier'
 
@@ -253,7 +245,8 @@ mlc = MLClassifier()
 page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
 
 ## Plot the the confusion matrix by model selected
-labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+# labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+labels_name = ['Healthy', 'Non-healthy']
 plot_confusion_matrix(page_clf, X_test, y_test,
                             display_labels=labels_name,
                             cmap=plt.cm.Blues,

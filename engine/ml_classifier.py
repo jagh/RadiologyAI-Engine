@@ -136,25 +136,35 @@ class MLClassifier:
                     list_train_scores.append(train_score)
                     list_valid_scores.append(valid_score)
 
-                    ## Model selection to write the best model by each ML classifierg
+                    ## Write dev_model by each ML classifierg over the n_splits
                     if not valid_scores.get(model_name):
                         if valid_score >= max(list_valid_scores):
                             model_file = open(str(model_path+"/dev_model.pkl"), "wb")
                             pickle.dump(pipe_clf, model_file)
                             model_file.close()
-
+                        else:
+                            pass
+                    else:
+                        pass
                     ## execution_time
                     print("Execution Time: {}".format((time.time()-execution_start)))
+
+                ## Model selection to write the best model by each ML classifier
+                if not valid_scores.get(model_name):
+                    model_file = open(str(model_path+"/model_"+model_name+".pkl"), "wb")
+                    pickle.dump(pipe_clf, model_file)
+                    model_file.close()
+
+                elif valid_score > np.max(valid_scores.get(model_name)):
+                    model_file = open(str(model_path+"/model_"+model_name+".pkl"), "wb")
+                    pickle.dump(pipe_clf, model_file)
+                    model_file.close()
+                else:
+                    pass
 
                 ## Inserting train and valid scores
                 train_scores.setdefault(model_name,[]).append(list_train_scores)
                 valid_scores.setdefault(model_name,[]).append(list_valid_scores)
-
-                ## Model selection to write the best model by each ML classifierg
-                if valid_score >= np.max(valid_scores.get(model_name)):
-                    model_file = open(str(model_path+"/model_"+model_name+".pkl"), "wb")
-                    pickle.dump(pipe_clf, model_file)
-                    model_file.close()
 
         return train_scores, valid_scores
 
