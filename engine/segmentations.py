@@ -40,7 +40,7 @@ class LungSegmentations:
         """
         for input_path in input_folder:
 
-            # print("engine - input_path", input_path)
+            print("engine - input_path", input_path)
 
             ct_name = input_path.split(os.path.sep)[-1]
             ct_dcm_format = str(ct_name.split('.nii.gz')[0] + '-' + seg_method + '.nii.gz')
