@@ -41,22 +41,21 @@ def rotate_CT(dcm_folder_input, dcm_folder_output):
 
 ######################################################################
 ## Convert DICOM CT scans to Nifti
-testbed = "testbed/"
-dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataDicom/*"))
-nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataNifti/")
+# testbed = "testbed/"
+# dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataDicom/*"))
+# nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataNifti/")
+# # Utils().convert_dcm2nii(dcm_folder, nii_folder)
 
-# Utils().convert_dcm2nii(dcm_folder, nii_folder)
 
 
-nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataNifti/*")
-# nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Yale/multiomics/01_segmentation_test/YaleTestSegData-nii/*")
+
 
 #######################################################################
 ## CT lung lobes segmentation
 # input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/*"))
+nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataNifti/*")
 input_folder = glob.glob(nii_folder)
 output_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/02_segmentation_2210325/InselDataLungSeg/")
-# output_folder = str("//data/01_UB/Multiomics-Data/Clinical_Imaging/Yale/multiomics/01_segmentation_test/full-body2chest/CT_Seg-lobes/")
 
 ls = LungSegmentations()
 for input_path in input_folder[:]:
