@@ -124,42 +124,42 @@ def load_features(file_path):
 
 ##---------------------------------------
 ## Set bi-lungs files path
-radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
-left_lung = os.path.join(radiomics_folder, "radiomics_features-left_lung.csv")
-right_lung = os.path.join(radiomics_folder, "radiomics_features-right_lung.csv")
-
-X_left_lung, y_left_lung = load_features(left_lung)
-X_right_lung, y_right_lung = load_features(right_lung)
-
-X_data = np.concatenate((X_left_lung, X_right_lung), axis=1)
-y_data = y_left_lung
-print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
-
-
-# ##---------------------------------------
-# ## Set lungs lobes files path
 # radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
-# left_lower = os.path.join(radiomics_folder, "radiomics_features-left_lower-Balanced.csv")
-# left_upper = os.path.join(radiomics_folder, "radiomics_features-left_upper-Balanced.csv")
-# right_lower = os.path.join(radiomics_folder, "radiomics_features-right_lower-Balanced.csv")
-# right_middle = os.path.join(radiomics_folder, "radiomics_features-right_middle-Balanced.csv")
-# right_upper = os.path.join(radiomics_folder, "radiomics_features-right_upper-Balanced.csv")
+# left_lung = os.path.join(radiomics_folder, "radiomics_features-left_lung.csv")
+# right_lung = os.path.join(radiomics_folder, "radiomics_features-right_lung.csv")
 #
-# X_left_lower, y_left_lower = load_features(left_lower)
-# X_left_upper, y_left_upper = load_features(left_upper)
-# X_right_lower, y_right_lower = load_features(right_lower)
-# X_right_middle, y_right_middle = load_features(right_middle)
-# X_right_upper, y_right_upper = load_features(right_upper)
+# X_left_lung, y_left_lung = load_features(left_lung)
+# X_right_lung, y_right_lung = load_features(right_lung)
 #
-# X_data = np.concatenate((X_left_lower, X_left_upper,
-#                         X_right_lower, X_right_middle, X_right_upper), axis=1)
-# y_data = y_left_lower
+# X_data = np.concatenate((X_left_lung, X_right_lung), axis=1)
+# y_data = y_left_lung
+# print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
 
 
 ##---------------------------------------
-# Create a ML folder and splitting the dataset
-ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
-MLClassifier().splitting(X_data, y_data, ml_folder)
+## Set lungs lobes files path
+radiomics_folder = os.path.join(testbed, "mosmeddata/radiomics_features/")
+left_lower = os.path.join(radiomics_folder, "radiomics_features-left_lower.csv")
+left_upper = os.path.join(radiomics_folder, "radiomics_features-left_upper.csv")
+right_lower = os.path.join(radiomics_folder, "radiomics_features-right_lower.csv")
+right_middle = os.path.join(radiomics_folder, "radiomics_features-right_middle.csv")
+right_upper = os.path.join(radiomics_folder, "radiomics_features-right_upper.csv")
+
+X_left_lower, y_left_lower = load_features(left_lower)
+X_left_upper, y_left_upper = load_features(left_upper)
+X_right_lower, y_right_lower = load_features(right_lower)
+X_right_middle, y_right_middle = load_features(right_middle)
+X_right_upper, y_right_upper = load_features(right_upper)
+
+X_data = np.concatenate((X_left_lower, X_left_upper,
+                        X_right_lower, X_right_middle, X_right_upper), axis=1)
+y_data = y_left_lower
+
+
+# ##---------------------------------------
+# # Create a ML folder and splitting the dataset
+# ml_folder = os.path.join(testbed, "mosmeddata/machine_learning")
+# MLClassifier().splitting(X_data, y_data, ml_folder)
 
 
 
@@ -189,7 +189,7 @@ lr_params = dict({'solver': 'newton-cg', 'max_iter': 500, 'random_state':2,
 ## https://www.analyticsvidhya.com/blog/2020/03/beginners-guide-random-forest-hyperparameter-tuning/
 rf_params = dict({'bootstrap': True, 'class_weight': None,
                     'criterion': 'gini', 'n_estimators': 2000,
-                    'max_features': 'auto', 'max_depth': 4,
+                    'max_features': 'auto', 'max_depth': 5,
                     'min_samples_leaf': 1, 'min_samples_split': 2,
                     'random_state': 2, 'n_jobs': 8})
 
@@ -197,7 +197,7 @@ rf_params = dict({'bootstrap': True, 'class_weight': None,
 gb_params = dict({'criterion': 'friedman_mse', 'init': None,
                     'learning_rate': 0.1, 'loss': 'deviance', 'max_depth': 5,
                     'min_samples_leaf': 1, 'min_samples_split': 2,
-                    'n_estimators': 500, 'random_state': None,
+                    'n_estimators': 1000, 'random_state': None,
                     'max_features': None, 'max_leaf_nodes': None,
                     'n_iter_no_change': None, 'tol':0.01})
 
@@ -214,51 +214,58 @@ X_train = np.load(str(ml_folder+'/dataset/'+"/X_train_baseline.npy"), allow_pick
 y_train = np.load(str(ml_folder+'/dataset/'+"/y_train_baseline.npy"), allow_pickle=True)
 print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
 
-# ## Launcher a machine laerning finetune
-# mlc = MLClassifier()
-# train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train,
-#                                                     oh_flat, n_splits, model_path)
-#
-# ## Plot the learning curves by model
-# mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
-
-
-
-######################################################################
-# Step 3: Model evaluation
-from sklearn.metrics import plot_confusion_matrix
-
-## Select the model to evaluate
-model_name = 'GradientBoostingClassifier'
-                #'LogisticRegression'
-                #'RandomForestClassifier'
-                #'GradientBoostingClassifier'
-
-## Read the dataset for training the model
-X_test = np.load(str(ml_folder+'/dataset/'+"/X_test_baseline.npy"), allow_pickle=True)
-y_test = np.load(str(ml_folder+'/dataset/'+"/y_test_baseline.npy"), allow_pickle=True)
-print("---"*20)
-print("X_eval: {} || y_eval: {} ".format(str(X_test.shape), str(y_test.shape)))
-
-## ML evaluation
+## Launcher a machine laerning finetune
 mlc = MLClassifier()
-page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
+train_scores, valid_scores = mlc.gridSearch(classifiers, X_train, y_train,
+                                                    oh_flat, n_splits, model_path)
 
-## Plot the the confusion matrix by model selected
-# labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
-labels_name = ['Healthy', 'Non-healthy']
-plot_confusion_matrix(page_clf, X_test, y_test,
-                            display_labels=labels_name,
-                            cmap=plt.cm.Blues,
-                            # normalize='true'
-                            ) #, xticks_rotation=15)
-plt.title(str(model_name+" || F1-score: "+ str(test_score)))
-plt.show()
+## Plot the learning curves by model
+mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
+
+
+
+
+
+
+# ######################################################################
+# # Step 3: Model evaluation
+# from sklearn.metrics import plot_confusion_matrix
+#
+# ## Select the model to evaluate
+# model_name = 'RandomForestClassifier'
+#                 #'LogisticRegression'
+#                 #'RandomForestClassifier'
+#                 #'GradientBoostingClassifier'
+#
+# ## Read the dataset for training the model
+# X_test = np.load(str(ml_folder+'/dataset/'+"/X_test_baseline.npy"), allow_pickle=True)
+# y_test = np.load(str(ml_folder+'/dataset/'+"/y_test_baseline.npy"), allow_pickle=True)
+# print("---"*20)
+# print("X_eval: {} || y_eval: {} ".format(str(X_test.shape), str(y_test.shape)))
+#
+# ## ML evaluation
+# mlc = MLClassifier()
+# page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
+#
+# ## Plot the the confusion matrix by model selected
+# # labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+# labels_name = ['Healthy', 'Non-healthy']
+# plot_confusion_matrix(page_clf, X_test, y_test,
+#                             display_labels=labels_name,
+#                             cmap=plt.cm.Blues,
+#                             # normalize='true'
+#                             ) #, xticks_rotation=15)
+# plt.title(str(model_name+" || F1-score: "+ str(test_score)))
+# plt.show()
 
 
 
 ###################################################################
 ## TO DO list
+## Tk-1: ML Model Interpretability — LIME || https://medium.com/analytics-vidhya/model-interpretability-lime-part-2-53c0f5e76b6a
+## Tk-2: Interpretability of Machine Learning models || https://medium.com/analytics-vidhya/interpretability-of-machine-learning-models-9787cf8a3789
+
+
 ## Tk-1: Check the actual process in ML Stage -> Done
 ## Tk-2: Add the 1_hot transformation for the labels -> Done
 ## Tk-3: Merge radiomics features by segmentations areas
