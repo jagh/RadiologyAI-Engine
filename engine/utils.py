@@ -2,6 +2,7 @@ import glob
 import collections
 import os, pickle, math
 import dicom2nifti
+import SimpleITK as sitk
 
 
 class Utils:
@@ -16,6 +17,22 @@ class Utils:
     def mkdir(self, directory):
          if not os.path.exists(directory):
              os.makedirs(directory)
+
+    def read_nrrd_file(file_path):
+        reader = sitk.ImageFileReader()
+        reader.SetImageIO('NrrdImageIO')
+        reader.SetFileName(file_path)
+        return reader.Execute();
+
+
+    def write_nifti_file(image, file_name):
+        """ Function to write sitk images
+        + Slicer utils: https://github.com/Slicer/Slicer/blob/master/Base/Python/tests/test_sitkUtils.py
+        """
+        write = sitk.ImageFileWriter()
+        write.SetFileName(file_name)
+        write.SetImageIO('NiftiImageIO')
+        write.Execute(image)
 
 
     def convert_dcm2nii(self, dcm_folder, output_folder):
