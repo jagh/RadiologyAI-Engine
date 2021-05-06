@@ -42,18 +42,18 @@ def rotate_CT(dcm_folder_input, dcm_folder_output):
 ######################################################################
 ## Convert DICOM CT scans to Nifti
 # testbed = "testbed/"
-# dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Dicom/*"))
+# dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Data/*"))
 # nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Nifti/")
 # Utils().convert_dcm2nii(dcm_folder, nii_folder)
-
+# Utils().itk_convert_dcm2nii(dcm_folder, nii_folder)
 
 
 #######################################################################
 ## CT lung lobes segmentation
-# input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/*"))
+##input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/*"))
 nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Nifti/*")
 input_folder = glob.glob(nii_folder)
-output_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-LungSeg/")
+output_folder = str("//data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-LungSeg/")
 
 ls = LungSegmentations()
 for input_path in input_folder[:]:

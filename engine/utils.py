@@ -18,14 +18,27 @@ class Utils:
          if not os.path.exists(directory):
              os.makedirs(directory)
 
-    def read_nrrd_file(file_path):
+    def read_dicom(self, filepath):
+        ''' Reads .dicom file and returns pixel array '''
+        reader = sitk.ImageSeriesReader()
+        dicom_names = reader.GetGDCMSeriesFileNames(filepath)
+        reader.SetFileNames(dicom_names)
+        return reader.Execute()
+
+    def read_nifti(self, filepath):
+        ''' Reads .nii file and returns pixel array '''
+        ct_scan = nib.load(filepath)
+        array   = ct_scan.get_fdata()
+        array   = np.rot90(np.array(array))
+        return (array)
+
+    def read_nrrd(self, file_path):
         reader = sitk.ImageFileReader()
         reader.SetImageIO('NrrdImageIO')
         reader.SetFileName(file_path)
         return reader.Execute();
 
-
-    def write_nifti_file(image, file_name):
+    def write_nifti(self, image, file_name):
         """ Function to write sitk images
         + Slicer utils: https://github.com/Slicer/Slicer/blob/master/Base/Python/tests/test_sitkUtils.py
         """
@@ -67,14 +80,37 @@ class Utils:
             # print(" ++ nii_file_name: {}".format(nii_file_name[0]))
             # print(" ++ nii_new_name: {}".format(nii_new_name))
 
-    def read_nii(self, filepath):
-        '''
-        Reads .nii file and returns pixel array
-        '''
-        ct_scan = nib.load(filepath)
-        array   = ct_scan.get_fdata()
-        array   = np.rot90(np.array(array))
-        return (array)
+
+    def itk_convert_dcm2nii(self, dcm_folder, output_folder):
+        """
+        Function to convert dicom files to nifti file
+        """
+        self.inputs = dcm_folder
+        self.outputs = output_folder
+
+        for folder_path in dcm_folder:
+            ## Get folder name
+            folder_name = folder_path.split(os.path.sep)[-1]
+            # print(" - folder_name: {}".format(folder_name))
+
+            ## Create the output folder by case
+            self.mkdir(str(output_folder + folder_name ))
+            nii_folder_path =  str(output_folder + "/" + folder_name + "/")
+            # print(" - output_folder: {}".format(nii_folder_path))
+
+            #######################################################################
+            ## Converting dicom files to nifti
+            #######################################################################
+
+            ## Read Dicom Image
+            # print('++ dicom_folder_path', folder_path)
+            dicom_img = self.read_dicom(folder_path)
+
+            ## Write Dicom Image
+            nii_file_name = os.path.join(nii_folder_path, str(folder_name + ".nii.gz"))
+            self.write_nifti(dicom_img, nii_file_name)
+            print('++ nii_file_name', nii_file_name)
+
 
 
 #######################################################################
