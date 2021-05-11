@@ -68,16 +68,16 @@ from sklearn.metrics import euclidean_distances
 from sklearn.decomposition import PCA
 
 metadata_np = metadata.values
-# print("++ Metadata: ", metadata_np[2, 2:])
-
-similarities = euclidean_distances(metadata_np[:, 2:])
-
-seed = np.random.RandomState(seed=3)
-
-mds = manifold.MDS(n_components=2, max_iter=5000, eps=1e-12, random_state=seed,
-                   n_init=10,
-                   dissimilarity="precomputed", n_jobs=1, metric=False)
-pos = mds.fit_transform(similarities)
+# # print("++ Metadata: ", metadata_np[2, 2:])
+#
+# similarities = euclidean_distances(metadata_np[:, 2:])
+#
+# seed = np.random.RandomState(seed=3)
+#
+# mds = manifold.MDS(n_components=2, max_iter=5000, eps=1e-12, random_state=seed,
+#                    n_init=10,
+#                    dissimilarity="precomputed", n_jobs=1, metric=False)
+# pos = mds.fit_transform(similarities)
 
 
 #######################################################################

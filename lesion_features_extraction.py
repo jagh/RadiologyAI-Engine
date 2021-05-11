@@ -18,8 +18,8 @@ from engine.featureextractor import RadiomicsExtractor
 
 ## Dataset path definitions
 testbed_name = "LesionExt-Bern-23_cases"
-nifti_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/04_18_seg-20210502/Bern-Nifti-Data"
-lesion_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/04_18_seg-20210502/Bern-Nifti-Seg/"
+nifti_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Yale/06_20_seg-20210502/Yale-Nifti-Data/"
+lesion_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Yale/06_20_seg-20210502/Yale-Nifti-Seg"
 
 ## Flag to write the header of each file
 write_header = False
@@ -32,14 +32,15 @@ seg_layer_number = 3
 radiomics_folder = os.path.join("testbed", testbed_name, "radiomics_features")
 Utils().mkdir(radiomics_folder)
 
-metadata_file_path = "//data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/04_18_seg-20210502/index_file-feature_extraction-23-bern.csv"
+metadata_file_path = "//data/01_UB/Multiomics-Data/Clinical_Imaging/Yale/06_20_seg-20210502/index_file-feature_extraction-32-yale.csv"
 metadata = pd.read_csv(metadata_file_path, sep=',')
 print("metadata: ", metadata)
 print("metadata: ", metadata.shape)
 
 
 ## iterate between segmentation layers
-for lesion_area in range(seg_layer_number):
+# for lesion_area in range(seg_layer_number):
+for lesion_area in range(1, seg_layer_number):
     ## Set file name to write a features vector per case
     filename = str(radiomics_folder+"/lesion_features-"+str(lesion_area)+".csv")
     features_file = open(filename, 'w+')
