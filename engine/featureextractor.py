@@ -26,110 +26,11 @@ class RadiomicsExtractor:
         return reader.Execute();
 
 
-    def feature_extractor_Broken(self, ct_image_path, ct_mask_path, study_name, label_name):
-        """
-        Using pyradiomics to extract first order and shape features
-        + Convert RTTI type vectorimage to image:
-        https://itk.org/ITKExamples/src/Core/ImageAdaptors/ViewComponentVectorImageAsScaleImage/Documentation.html?highlight=vectorimage#_CPPv4I0_jEN3itk25VectorImageToImageAdaptorE
-
-        Read Write Vector Image
-        This example illustrates how to read and write an image of pixel type Vector.
-        https://itk.org/ITKExamples/src/Core/Common/ReadWriteVectorImage/Documentation.html#read-write-vector-image
-        """
-
-        # nifti images
-        # ct_image = sitk.ReadImage(ct_image_path)
-        # ct_mask = sitk.ReadImage(ct_mask_path)
-
-        # ## nrrd sources
-        ct_image = self.read_nrrd_file(ct_image_path)
-        ct_mask = self.read_nrrd_file(ct_mask_path)
-
-
-        # ct_image = sitk.ReadImage(ct_image_path, imageIO="NrrdImageIO")
-        # ct_mask = sitk.ReadImage(ct_mask_path, imageIO="NrrdImageIO")
-
-        print("++ CT ->", ct_image)
-        print("++ Seg ->", ct_mask)
-
-        #
-        # VectorDimension = 4
-        # PixelType = itk.Vector[sitk.F, VectorDimension]
-        #
-        # ImageDimension = 3
-        # ImageType = itk.Image[PixelType, ImageDimension]
-        #
-        # reader = itk.ImageFileReader[ImageType].New()
-        # reader.SetFileName(ct_mask_path)
-
-        # writer = itk.ImageFileWriter[ImageType].New()
-        # writer.SetFileName(sys.argv[2])
-        # writer.SetInput(reader.GetOutput())
-        # writer.Update()
-
-
-        image_feature_list = []
-
-        image_feature_list.append(study_name)
-        image_feature_list.append(label_name)
-
-        ## Get the First Order features
-        firstOrderFeatures = firstorder.RadiomicsFirstOrder(ct_image, ct_mask, **self.settings)
-        extractor_firstOrder = firstOrderFeatures.execute()
-        for (key, val) in six.iteritems(firstOrderFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-
-        ## Get Shape Features in 3D
-        shapeFeatures3D = shape.RadiomicsShape(ct_image, ct_mask, **self.settings)
-        extractor_shape = shapeFeatures3D.execute()
-        for (key, val) in six.iteritems(shapeFeatures3D.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-
-        glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask, **self.settings)
-        extractor_glcm = glcmFeatures.execute()
-        for (key, val) in six.iteritems(glcmFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-
-        glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask, **self.settings)
-        extractor_glszm = glszmFeatures.execute()
-        for (key, val) in six.iteritems(glszmFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-
-        glrlmFeatures = glrlm.RadiomicsGLRLM(ct_image, ct_mask, **self.settings)
-        extractor_glrlm = glrlmFeatures.execute()
-        for (key, val) in six.iteritems(glrlmFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-
-        ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask, **self.settings)
-        extractor_ngtdm = ngtdmFeatures.execute()
-        for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-
-        gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask, **self.settings)
-        extractor_gldm = gldmFeatures.execute()
-        for (key, val) in six.iteritems(gldmFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-
-        return image_feature_list
-
-
-
     def feature_extractor(self, ct_image_path, ct_mask_path, study_name, label_name):
         """
-        Using pyradiomics to extract first order and shape features
+        Using pyradiomics to extract first order, shape, texture and other features
+        + Reference work: Griethuysen et al. Computational Radiomics System to Decode theRadiographic Phenotype. 2017.
+            -> https://cancerres.aacrjournals.org/content/canres/77/21/e104.full.pdf
         """
 
         ## nifti images
@@ -154,7 +55,8 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(firstOrderFeatures.featureValues):
             # print("key: {} || val: {}".format(key, val))
             image_feature_list.append(val)
-            image_header_list.append(key)
+            # image_header_list.append(str("fOF_" + key))
+            image_header_list.append(str("AA_" + key))
 
 
         ## Get Shape Features in 3D
@@ -163,7 +65,8 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(shapeFeatures3D.featureValues):
             # print("key: {} || val: {}".format(key, val))
             image_feature_list.append(val)
-            image_header_list.append(key)
+            # image_header_list.append(str("sF3D_" + key))
+            image_header_list.append(str("BB_" + key))
 
 
         glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask, **self.settings)
@@ -171,7 +74,8 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(glcmFeatures.featureValues):
             # print("key: {} || val: {}".format(key, val))
             image_feature_list.append(val)
-            image_header_list.append(key)
+            # image_header_list.append(str("glcmF_" + key))
+            image_header_list.append(str("CC_" + key))
 
 
         # glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask, **self.settings)
@@ -186,7 +90,8 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(glrlmFeatures.featureValues):
             # print("key: {} || val: {}".format(key, val))
             image_feature_list.append(val)
-            image_header_list.append(key)
+            # image_header_list.append(str("glcmF_" + key))
+            image_header_list.append(str("DD_" + key))
 
 
         ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask, **self.settings)
@@ -194,7 +99,8 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
             # print("key: {} || val: {}".format(key, val))
             image_feature_list.append(val)
-            image_header_list.append(key)
+            # image_header_list.append(str("ngtdmF_" + key))
+            image_header_list.append(str("EE_" + key))
 
 
         gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask, **self.settings)
@@ -202,7 +108,8 @@ class RadiomicsExtractor:
         for (key, val) in six.iteritems(gldmFeatures.featureValues):
             # print("key: {} || val: {}".format(key, val))
             image_feature_list.append(val)
-            image_header_list.append(key)
+            # image_header_list.append(str("ngtdmF_" + key))
+            image_header_list.append(str("FF_" + key))
 
 
         return image_feature_list, image_header_list
