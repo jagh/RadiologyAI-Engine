@@ -25,17 +25,19 @@ def download_data_example(filename):
         print ("done unzipping")
 
 
-
-
 #######################################################################
 ## Feature Visualization with clusters
 ## https://github.com/AIM-Harvard/pyradiomics/blob/master/notebooks/FeatureVisualization.ipynb
 #######################################################################
 
 ## Setting the input folder
-testbed_name = "LesionExt-Bern-23_cases"
+# testbed_name = "LesionExt-Bern-full_cases-SK"
+testbed_name = "LesionExt-Bern-full_cases-HK"
+# testbed_name = "LesionExt-Yale-10_cases"
 radiomics_folder = os.path.join("testbed", testbed_name, "radiomics_features")
+visualization_folder = os.path.join("testbed", testbed_name, "visualization_features")
 Utils().mkdir(radiomics_folder)
+Utils().mkdir(visualization_folder)
 
 
 
@@ -68,16 +70,16 @@ from sklearn.metrics import euclidean_distances
 from sklearn.decomposition import PCA
 
 metadata_np = metadata.values
-# # print("++ Metadata: ", metadata_np[2, 2:])
-#
-# similarities = euclidean_distances(metadata_np[:, 2:])
-#
-# seed = np.random.RandomState(seed=3)
-#
-# mds = manifold.MDS(n_components=2, max_iter=5000, eps=1e-12, random_state=seed,
-#                    n_init=10,
-#                    dissimilarity="precomputed", n_jobs=1, metric=False)
-# pos = mds.fit_transform(similarities)
+# print("++ Metadata: ", metadata_np[2, 2:])
+
+similarities = euclidean_distances(metadata_np[:, 2:])
+
+seed = np.random.RandomState(seed=3)
+
+mds = manifold.MDS(n_components=2, max_iter=5000, eps=1e-12, random_state=seed,
+                   n_init=10,
+                   dissimilarity="precomputed", n_jobs=1, metric=False)
+pos = mds.fit_transform(similarities)
 
 
 #######################################################################
@@ -111,25 +113,30 @@ import matplotlib.cm as cm
 #######################################################################
 ### Plot features as heatmap
 #######################################################################
-
-
 # Construct a pandas dataframe from the samples
 d = pd.DataFrame(data=metadata_np[:, 2:], columns=metadata.columns[2:])
 
-# d = ggo_metadata
+# fig_name = "ggo"
+fig_name = "con"
+
 d = con_metadata
+# d = ggo_metadata
 corr = d.corr()
 
 # Set up the matplotlib figure, make it big!
-f, ax = plt.subplots(figsize=(10, 10))
+f, ax = plt.subplots(figsize=(15, 10))
 
 # Draw the heatmap using seaborn
-sns.heatmap(corr, vmax=.8, square=True,  cmap="vlag")
+# sns.heatmap(corr, vmax=.8, square=True,  linewidths=.3, cmap="vlag")
+sns.heatmap(corr, square=True,  linewidths=.3, cmap="vlag")
+# plt.ax_heatmap.set_xticklabels([])
+plt.savefig(os.path.join(visualization_folder, str(fig_name + "_matrix_correlation.png") ))
 plt.show()
 
-
 dd = d.iloc[:,1:50]
+# print("+ dd", dd)
 
 pp = sns.clustermap(dd.corr(), linewidths=.5, figsize=(13,13),  cmap="vlag")
 _ = plt.setp(pp.ax_heatmap.get_yticklabels(), rotation=0)
+plt.savefig(os.path.join(visualization_folder, str(fig_name + "_hierchical_cluster.png") ))
 plt.show()
