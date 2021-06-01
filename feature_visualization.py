@@ -9,9 +9,13 @@ from matplotlib import pyplot as plt
 # from sklearn.metrics import euclidean_distances
 # from sklearn.decomposition import PCA
 
-## pca data visualization
+## pca data projection
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+
+## tSNE data projection
+from sklearn.feature_extraction.text import TfidfVectorizer
+from yellowbrick.text import TSNEVisualizer
 
 from engine.utils import Utils
 
@@ -43,7 +47,6 @@ def plot_heatmap(metadata, visualization_folder, fig_name):
     plt.show()
 
 
-
 def pca_2D_projection(metadata, visualization_folder, fig_name):
     """ Using PCA for data visualization
             + PCA using Python (scikit-learn) -> https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60
@@ -51,34 +54,35 @@ def pca_2D_projection(metadata, visualization_folder, fig_name):
 
 
     ## Data standarization
-    features = ['AA_10Percentile',	'AA_90Percentile',	'AA_Energy',	'AA_Entropy',
-    	       'AA_InterquartileRange',	'AA_Kurtosis',	'AA_Maximum',	'AA_MeanAbsoluteDeviation',
-               'AA_Mean',	'AA_Median',	'AA_Minimum',	'AA_Range',	'AA_RobustMeanAbsoluteDeviation',
-               'AA_RootMeanSquared',	'AA_Skewness',	'AA_TotalEnergy',	'AA_Uniformity',	'AA_Variance',
-
-               'BB_Elongation',	'BB_Flatness',	'BB_LeastAxisLength',	'BB_MajorAxisLength',	'BB_Maximum2DDiameterColumn',
-               'BB_Maximum2DDiameterRow',	'BB_Maximum2DDiameterSlice',	'BB_Maximum3DDiameter',	'BB_MeshVolume',
-               'BB_MinorAxisLength',	'BB_Sphericity',	'BB_SurfaceArea',	'BB_SurfaceVolumeRatio',	'BB_VoxelVolume',
-
-               'CC_Autocorrelation',	'CC_ClusterProminence',	'CC_ClusterShade',	'CC_ClusterTendency',	'CC_Contrast',
-               'CC_Correlation',	'CC_DifferenceAverage',	'CC_DifferenceEntropy',	'CC_DifferenceVariance',	'CC_Id',	'CC_Idm',
-               'CC_Idmn',	'CC_Idn',	'CC_Imc1',	'CC_Imc2',	'CC_InverseVariance',	'CC_JointAverage',	'CC_JointEnergy',
-               'CC_JointEntropy',	'CC_MCC',	'CC_MaximumProbability',	'CC_SumAverage',	'CC_SumEntropy',	'CC_SumSquares',
-
-               'DD_GrayLevelNonUniformity',	'DD_GrayLevelNonUniformityNormalized',	'DD_GrayLevelVariance',	'DD_HighGrayLevelRunEmphasis',
-               'DD_LongRunEmphasis',	'DD_LongRunHighGrayLevelEmphasis',	'DD_LongRunLowGrayLevelEmphasis',	'DD_LowGrayLevelRunEmphasis',
-               'DD_RunEntropy',	'DD_RunLengthNonUniformity',	'DD_RunLengthNonUniformityNormalized',	'DD_RunPercentage',	'DD_RunVariance',
-               'DD_ShortRunEmphasis',	'DD_ShortRunHighGrayLevelEmphasis',	'DD_ShortRunLowGrayLevelEmphasis',
-
-               'EE_Busyness',	'EE_Coarseness', 'EE_Complexity',	'EE_Contrast',	'EE_Strength',
-               'FF_DependenceEntropy',	'FF_DependenceNonUniformity',	'FF_DependenceNonUniformityNormalized',	'FF_DependenceVariance',
-               'FF_GrayLevelNonUniformity',	'FF_GrayLevelVariance',	'FF_HighGrayLevelEmphasis',	'FF_LargeDependenceEmphasis',
-               'FF_LargeDependenceHighGrayLevelEmphasis',	'FF_LargeDependenceLowGrayLevelEmphasis',	'FF_LowGrayLevelEmphasis',
-               'FF_SmallDependenceEmphasis',	'FF_SmallDependenceHighGrayLevelEmphasis',	'FF_SmallDependenceLowGrayLevelEmphasis'
-               ]
+    # features = ['AA_10Percentile',	'AA_90Percentile',	'AA_Energy',	'AA_Entropy',
+    # 	       'AA_InterquartileRange',	'AA_Kurtosis',	'AA_Maximum',	'AA_MeanAbsoluteDeviation',
+    #            'AA_Mean',	'AA_Median',	'AA_Minimum',	'AA_Range',	'AA_RobustMeanAbsoluteDeviation',
+    #            'AA_RootMeanSquared',	'AA_Skewness',	'AA_TotalEnergy',	'AA_Uniformity',	'AA_Variance',
+    #
+    #            'BB_Elongation',	'BB_Flatness',	'BB_LeastAxisLength',	'BB_MajorAxisLength',	'BB_Maximum2DDiameterColumn',
+    #            'BB_Maximum2DDiameterRow',	'BB_Maximum2DDiameterSlice',	'BB_Maximum3DDiameter',	'BB_MeshVolume',
+    #            'BB_MinorAxisLength',	'BB_Sphericity',	'BB_SurfaceArea',	'BB_SurfaceVolumeRatio',	'BB_VoxelVolume',
+    #
+    #            'CC_Autocorrelation',	'CC_ClusterProminence',	'CC_ClusterShade',	'CC_ClusterTendency',	'CC_Contrast',
+    #            'CC_Correlation',	'CC_DifferenceAverage',	'CC_DifferenceEntropy',	'CC_DifferenceVariance',	'CC_Id',	'CC_Idm',
+    #            'CC_Idmn',	'CC_Idn',	'CC_Imc1',	'CC_Imc2',	'CC_InverseVariance',	'CC_JointAverage',	'CC_JointEnergy',
+    #            'CC_JointEntropy',	'CC_MCC',	'CC_MaximumProbability',	'CC_SumAverage',	'CC_SumEntropy',	'CC_SumSquares',
+    #
+    #            'DD_GrayLevelNonUniformity',	'DD_GrayLevelNonUniformityNormalized',	'DD_GrayLevelVariance',	'DD_HighGrayLevelRunEmphasis',
+    #            'DD_LongRunEmphasis',	'DD_LongRunHighGrayLevelEmphasis',	'DD_LongRunLowGrayLevelEmphasis',	'DD_LowGrayLevelRunEmphasis',
+    #            'DD_RunEntropy',	'DD_RunLengthNonUniformity',	'DD_RunLengthNonUniformityNormalized',	'DD_RunPercentage',	'DD_RunVariance',
+    #            'DD_ShortRunEmphasis',	'DD_ShortRunHighGrayLevelEmphasis',	'DD_ShortRunLowGrayLevelEmphasis',
+    #
+    #            'EE_Busyness',	'EE_Coarseness', 'EE_Complexity',	'EE_Contrast',	'EE_Strength',
+    #            'FF_DependenceEntropy',	'FF_DependenceNonUniformity',	'FF_DependenceNonUniformityNormalized',	'FF_DependenceVariance',
+    #            'FF_GrayLevelNonUniformity',	'FF_GrayLevelVariance',	'FF_HighGrayLevelEmphasis',	'FF_LargeDependenceEmphasis',
+    #            'FF_LargeDependenceHighGrayLevelEmphasis',	'FF_LargeDependenceLowGrayLevelEmphasis',	'FF_LowGrayLevelEmphasis',
+    #            'FF_SmallDependenceEmphasis',	'FF_SmallDependenceHighGrayLevelEmphasis',	'FF_SmallDependenceLowGrayLevelEmphasis'
+    #            ]
 
     ## Separating out the features
-    x = metadata.loc[:, features].values
+    # x = metadata.loc[:, features].values
+    x = metadata.iloc[:,2:-1]
 
     ## Separating out the target
     y = metadata.loc[:,['label_name']].values
@@ -119,39 +123,27 @@ def pca_2D_projection(metadata, visualization_folder, fig_name):
     plt.show()
 
 
-    # ## Compute similarities with eculidean distances
-    # metadata_np = metadata.values
-    # # print("++ Metadata: ", metadata_np[2, 2:])
-    #
-    # similarities = euclidean_distances(metadata_np[:, 2:])
-    #
-    # seed = np.random.RandomState(seed=3)
-    #
-    # mds = manifold.MDS(n_components=2, max_iter=5000, eps=1e-12, random_state=seed,
-    #                    n_init=10,
-    #                    dissimilarity="precomputed", n_jobs=1, metric=False)
-    # pos = mds.fit_transform(similarities)
+def tSNE_2D_projection(metadata, visualization_folder, fig_name):
+    """ t-SNE Corpus Visualization with Yellowbrick """
 
+    ## Separating out the features
+    data = metadata.iloc[:,2:-1]
 
+    ## Separating out the target
+    # target = metadata.loc[:,['label_name']].values
+    target = metadata['label_name']
 
-    # ##############################################################
-    # ## 2D Visualization
-    # fig = plt.figure(1)
-    # ax = plt.axes([0., 0., 1., 1.])
-    #
-    # s = 100
-    #
-    # ggo = [0, 1, 2]
-    # con = [3, 4, 5]
-    #
-    # plt.scatter(pos[ggo, 0], pos[ggo, 1], color='navy', alpha=1.0, s=s, lw=1, label='ggo')
-    # plt.scatter(pos[con, 0], pos[con, 1], color='turquoise', alpha=1.0, s=s, lw=1, label='con')
-    #
-    # plt.legend(scatterpoints=1, loc=5, shadow=False)
-    #
-    # similarities = similarities.max() / similarities * 100
-    # similarities[np.isinf(similarities)] = 0
-    # plt.show()
+    ## create document vectors
+    tfidf = TfidfVectorizer()
+
+    X = tfidf.fit_transform(data)
+    y = target
+
+    # Create the visualizer and draw the vectors
+    tsne = TSNEVisualizer()
+    tsne.fit(X, y)
+    tsne.show()
+
 
 
 
@@ -204,6 +196,15 @@ print("+ metadata: ", all_metadata.shape)
 
 
 ## Step-2: PCA 2D projecttion
-pca_2D_projection(ggo_metadata, visualization_folder, "GGO")
+# pca_2D_projection(ggo_metadata, visualization_folder, "GGO")
 # pca_2D_projection(con_metadata, visualization_folder, "CON")
-# pca_2D_projection(all_metadata, visualization_folder, "ALL")
+all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
+pca_2D_projection(all_metadata, visualization_folder, "ALL")
+
+
+## Step-2: tSNE 2D projecttion
+# tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
+# tSNE_2D_projection(con_metadata, visualization_folder, "CON")
+
+# all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
+# tSNE_2D_projection(all_metadata, visualization_folder, "ALL")
