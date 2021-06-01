@@ -42,18 +42,18 @@ def rotate_CT(dcm_folder_input, dcm_folder_output):
 ######################################################################
 ## Convert DICOM CT scans to Nifti
 # testbed = "testbed/"
-# dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Data/*"))
-# nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Nifti/")
-# Utils().convert_dcm2nii(dcm_folder, nii_folder)
+# dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/04_05_cases-20210518/ParmaDataDicom/*"))
+# nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/04_05_cases-20210518/ParmaDataNifti/")
+# ##Utils().convert_dcm2nii(dcm_folder, nii_folder)
 # Utils().itk_convert_dcm2nii(dcm_folder, nii_folder)
 
 
 #######################################################################
 ## CT lung lobes segmentation
 ##input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/*"))
-nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-Nifti/*")
+nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataNifti-1/*")
 input_folder = glob.glob(nii_folder)
-output_folder = str("//data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/02_20_cases-20210416/Parma-LungSeg/")
+output_folder = str("//data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataLungSeg/")
 
 ls = LungSegmentations()
 for input_path in input_folder[:]:
@@ -67,3 +67,11 @@ for input_path in input_folder[:]:
     # print("input_case: ", input_path)
     ls.folder_segmentations(input_case, output_case, 'bi-lung', 5)
     ## ls.folder_segmentations(input_case, output_case, 'lobes', 5)
+
+
+# #######################################################################
+# ## Convert nrrd to nifti file
+# nrrd_file = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataNifti/B0031_06_200609_CT_SK.nrrd"
+# nii_file = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataNifti/B0031_06_200609_CT_SK.nii"
+# img_ = Utils().read_nrrd(nrrd_file)
+# Utils().rwrite_nifti(img_, nii_file)
