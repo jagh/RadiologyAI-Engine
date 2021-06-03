@@ -4,6 +4,9 @@ import os, pickle, math
 import dicom2nifti
 import SimpleITK as sitk
 
+import nibabel as nib
+import numpy as np
+
 
 class Utils:
     """

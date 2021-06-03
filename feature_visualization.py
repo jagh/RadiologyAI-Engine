@@ -3,21 +3,21 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from matplotlib import pyplot as plt
+from engine.utils import Utils
 
-# from sklearn import manifold
-# from sklearn.metrics import euclidean_distances
-# from sklearn.decomposition import PCA
+from matplotlib import pyplot as plt
 
 ## pca data projection
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 ## tSNE data projection
+from sklearn.manifold import TSNE
+from sklearn import manifold, datasets
+
+## tSNE data projection yellowbrick
 from sklearn.feature_extraction.text import TfidfVectorizer
 from yellowbrick.text import TSNEVisualizer
-
-from engine.utils import Utils
 
 
 
@@ -53,7 +53,7 @@ def pca_2D_projection(metadata, visualization_folder, fig_name):
     """
 
 
-    ## Data standarization
+    # # Data standarization
     # features = ['AA_10Percentile',	'AA_90Percentile',	'AA_Energy',	'AA_Entropy',
     # 	       'AA_InterquartileRange',	'AA_Kurtosis',	'AA_Maximum',	'AA_MeanAbsoluteDeviation',
     #            'AA_Mean',	'AA_Median',	'AA_Minimum',	'AA_Range',	'AA_RobustMeanAbsoluteDeviation',
@@ -98,12 +98,10 @@ def pca_2D_projection(metadata, visualization_folder, fig_name):
                                 columns = ['principal component 1',
                                             'principal component 2'])
 
-
     finalDf = pd.concat([principalDf, metadata[['label_name']]], axis = 1)
 
-
     ## Visualize 2D Projection
-    fig = plt.figure(figsize = (8,8))
+    fig = plt.figure(figsize = (12, 12))
     ax = fig.add_subplot(1,1,1)
     ax.set_xlabel('Principal Component 1', fontsize = 15)
     ax.set_ylabel('Principal Component 2', fontsize = 15)
@@ -123,7 +121,89 @@ def pca_2D_projection(metadata, visualization_folder, fig_name):
     plt.show()
 
 
-def tSNE_2D_projection(metadata, visualization_folder, fig_name):
+# from sklearn.metrics import pairwise_distances
+# from sklearn.manifold import _t_sne
+#
+# def tSNE_2D_projection(metadata, visualization_folder, fig_name):
+#     """
+#     https://danielmuellerkomorowska.com/2021/01/05/introduction-to-t-sne-in-python-with-scikit-learn/
+#     """
+#
+#     ## Separating out the features
+#     X = metadata.iloc[:,2:-1].values
+#
+#     ## Separating out the target
+#     y = metadata['label_name'].values
+#
+#
+#
+#     #########################################################################3
+#     y_sorted_idc = y.argsort()
+#     X_sorted = X[y_sorted_idc]
+#
+#     distance_matrix = pairwise_distances(X, metric='euclidean')
+#     print('distance_matrix', distance_matrix)
+#
+#     distance_matrix_sorted = pairwise_distances(X_sorted,
+#                                             metric='euclidean')
+#
+#     fig, ax = plt.subplots(1,2)
+#     ax[0].imshow(distance_matrix, 'Greys')
+#     ax[1].imshow(distance_matrix_sorted, 'Greys')
+#     ax[0].set_title("Unsorted")
+#     ax[1].set_title("Sorted by Label")
+#
+#
+#     perplexity = 30  # Same as the default perplexity
+#     p = _t_sne._joint_probabilities(distances=distance_matrix,
+#                         desired_perplexity = perplexity,
+#                         verbose=False)
+#
+#
+#     ### Optimize Embedding with Gradient Descent
+#
+#     # Create the initial embedding
+#     n_samples = X.shape[0]
+#     n_components = 2
+#     X_embedded = 1e-4 * np.random.randn(n_samples,
+#                                     n_components).astype(np.float32)
+#
+#     embedding_init = X_embedded.ravel()  # Flatten the two dimensional array to 1D
+#     print('embedding_init:', embedding_init)
+#
+#     # kl_kwargs defines the arguments that are passed down to _kl_divergence
+#     kl_kwargs = {'P': p,
+#              'degrees_of_freedom': 1,
+#              'n_samples': 40,
+#              'n_components':2}
+#
+#     # Perform gradient descent
+#     embedding_done = _t_sne._gradient_descent(_t_sne._kl_divergence,
+#                                           embedding_init,
+#                                           0,
+#                                           4,embedding_init
+#                                           kwargs=kl_kwargs)
+#
+#     # Get first and second TSNE components into a 2D array
+#     tsne_result = embedding_done[0].reshape(40, 2)
+#
+#     # Convert do DataFrame and plot
+#     tsne_result_df = pd.DataFrame({'tsne_1': tsne_result[:,0],
+#                                'tsne_2': tsne_result[:,1],
+#                                'label': y})
+#
+#     fig, ax = plt.subplots(1)
+#     sns.scatterplot(x='tsne_1', y='tsne_2', hue='label', data=tsne_result_df, ax=ax,s=120)
+#     lim = (tsne_result.min()-5, tsne_result.max()+5)
+#     ax.set_xlim(lim)
+#     ax.set_ylim(lim)
+#     ax.set_aspect('equal')
+#     ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+#
+#     plt.show()
+
+
+def tSNE_2D_projection_Yellowbrick(metadata, visualization_folder, fig_name):
     """ t-SNE Corpus Visualization with Yellowbrick """
 
     ## Separating out the features
@@ -143,6 +223,66 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
     tsne = TSNEVisualizer()
     tsne.fit(X, y)
     tsne.show()
+
+
+def tSNE_2D_projection(metadata, visualization_folder, fig_name):
+    """ t-SNE Corpus Visualization with Scikit Learn
+            + Example: https://scikit-learn.org/stable/auto_examples/manifold/plot_t_sne_perplexity.html#sphx-glr-auto-examples-manifold-plot-t-sne-perplexity-py
+    """
+
+    ## Separating out the features
+    X = metadata.iloc[:,2:-1]
+
+    ## Separating out the target
+    # target = metadata.loc[:,['label_name']].values
+    y= metadata['label_name']
+
+
+    # We want to get TSNE embedding with 2 dimensions
+    n_components = 2
+    # tsne = TSNE(n_components)
+    tsne = manifold.TSNE(n_components=n_components, init='pca',
+                        learning_rate=50,
+                         random_state=1, perplexity=100)
+    tsne_result = tsne.fit_transform(X)
+    tsne_result.shape
+    # (1000, 2)
+    # Two dimensions for each of our images
+
+    # Plot the result of our TSNE with the label color coded
+    # A lot of the stuff here is about making the plot look pretty and not TSNE
+    tsne_result_df = pd.DataFrame({'tsne_1': tsne_result[:,0], 'tsne_2': tsne_result[:,1], 'label': y})
+    fig, ax = plt.subplots(1)
+    # plt.figsize = (12, 12)
+    sns.scatterplot(x='tsne_1', y='tsne_2', hue='label', data=tsne_result_df, ax=ax,s=120)
+    lim = (tsne_result.min()-5, tsne_result.max()+5)
+    ax.set_xlim(lim)
+    ax.set_ylim(lim)
+    ax.set_aspect('equal')
+    ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+
+
+# #########################################
+#     sns.set(style = "ticks")
+#
+#     fig = plt.figure()
+#     ax = fig.add_subplot(111, projection = '3d')
+#
+#     t1 = tsne_result[:,0]
+#     t2 = tsne_result[:,1]
+#     t3 = tsne_result[:,2]
+#
+#     ax.set_xlabel("Happiness")
+#     ax.set_ylabel("Economy")
+#     ax.set_zlabel("Health")
+#
+#     ax.scatter(t1, t2, t3, c=y.values, s=64)
+
+
+    plt.savefig(os.path.join(visualization_folder, str(fig_name + "_tsne_2d_projection.png") ))
+    plt.show()
+
+
 
 
 
@@ -180,9 +320,9 @@ print("+ con_metadata: ", con_metadata.shape)
 
 ## Combining the dataset into 1
 # metadata = pd.concat([ggo_metadata, con_metadata, ate_metadata], axis=0)
-all_metadata = pd.concat([ggo_metadata, con_metadata], axis=0)
-print("+ metadata: ", all_metadata.head())
-print("+ metadata: ", all_metadata.shape)
+# all_metadata = pd.concat([ggo_metadata, con_metadata], axis=0)
+# print("+ metadata: ", all_metadata.head())
+# print("+ metadata: ", all_metadata.shape)
 
 
 #######################################################################
@@ -192,19 +332,31 @@ print("+ metadata: ", all_metadata.shape)
 ## Step-1: Compute the feature correlations
 # plot_heatmap(ggo_metadata, visualization_folder, "GGO")
 # plot_heatmap(con_metadata, visualization_folder, "CON")
+#
+# ## Combining the dataset into 1
+# all_metadata = pd.concat([ggo_metadata, con_metadata], axis=0)
+# print("+ metadata: ", all_metadata.head())
+# print("+ metadata: ", all_metadata.shape)
 # plot_heatmap(all_metadata, visualization_folder, "ALL")
 
 
-## Step-2: PCA 2D projecttion
+# ## Step-2: PCA 2D projecttion
 # pca_2D_projection(ggo_metadata, visualization_folder, "GGO")
 # pca_2D_projection(con_metadata, visualization_folder, "CON")
+# all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
+# pca_2D_projection(all_metadata, visualization_folder, "ALL")
+
+
+## Step-3: tSNE 2D projecttion with Yellowbrick
+# tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
+# tSNE_2D_projection(con_metadata, visualization_folder, "CON")
+#
 all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
-pca_2D_projection(all_metadata, visualization_folder, "ALL")
+print("+ metadata: ", all_metadata.head())
+print("+ metadata: ", all_metadata.shape)
+tSNE_2D_projection(all_metadata, visualization_folder, "ALL")
+
 
 
 ## Step-2: tSNE 2D projecttion
-# tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
-# tSNE_2D_projection(con_metadata, visualization_folder, "CON")
-
-# all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
-# tSNE_2D_projection(all_metadata, visualization_folder, "ALL")
+# tSNE_2D_projection(ggo_metadata, con_metadata, all_metadata, visualization_folder, "GGO")
