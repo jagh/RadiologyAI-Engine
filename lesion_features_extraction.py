@@ -11,33 +11,37 @@ from engine.segmentations import LungSegmentations
 from engine.featureextractor import RadiomicsExtractor
 
 
-
 #######################################################################
 ## Feature extraction with pyradiomics
 #######################################################################
 ## Dataset path definitions
-testbed_name = "LesionExt-Bern-2_cases-HK"
-nifti_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/05_18_seg-HK-20210502/Bern-Nifti-Data-ii/"
-lesion_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/05_18_seg-HK-20210502/Bern-Nifti-Seg-ii/"
+nifti_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Data/"
+lesion_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Seg/"
+metadata_file_path = "/data/01_UB/CLINICCAI-2021/index_image_and_seg_3_cases-Bern.csv"
+testbed_name = "3D-LesionExt-Bern-SK"   ## Experiment folder
 
-## Flag to write the header of each file
-write_header = False
-## {0: GGO, 1: CON, 2: ATE, 3: PLE}
-seg_layer_number = 1
+# lesion_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Seg-DNN/"
+# metadata_file_path = "/data/01_UB/CLINICCAI-2021/index_image_and_dnn_seg_3_cases-Bern.csv"
+# testbed_name = "3D-LesionExt-DNN-Bern-SK"   ## Experiment folder
 
+## Feature extraction parameters
+write_header = False                    ## Flag to write the header of each file
+seg_layer_number = 2                    ## {0: GGO, 1: CON, 2: ATE, 3: PLE}
+
+
+#######################################################################
+## Step-1: Extract features per segmentation layer between all cases
+#######################################################################
 ## Crete new folder for feature extraction
 radiomics_folder = os.path.join("testbed", testbed_name, "radiomics_features")
 Utils().mkdir(radiomics_folder)
 
-metadata_file_path = "/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/05_18_seg-HK-20210502/index_file-feature_extraction-2-bern-HK.csv"
 metadata = pd.read_csv(metadata_file_path, sep=',')
 print("metadata: ", metadata)
 print("metadata: ", metadata.shape)
 
-
 ## iterate between segmentation layers
-for lesion_area in range(seg_layer_number):
-# for lesion_area in range(1, seg_layer_number):
+for lesion_area in range(1, seg_layer_number):
     ## Set file name to write a features vector per case
     filename = str(radiomics_folder+"/lesion_features-"+str(lesion_area)+".csv")
     features_file = open(filename, 'w+')
