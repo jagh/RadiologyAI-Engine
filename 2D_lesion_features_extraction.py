@@ -57,7 +57,8 @@ nifti_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Data/"
 lesion_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Seg/"
 dnn_lesion_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Seg-DNN/"
 
-metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_dc_image_manualSeg_autoSeg_3_cases.csv"
+# metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing-JAGH.csv"
+metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing.csv"
 testbed_name = "2D-DiceCoefficient"   ## Experiment folder
 
 nifti_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Data/"
