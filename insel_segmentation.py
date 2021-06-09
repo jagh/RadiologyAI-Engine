@@ -41,31 +41,31 @@ def rotate_CT(dcm_folder_input, dcm_folder_output):
 
 ######################################################################
 ## Convert DICOM CT scans to Nifti
-# testbed = "testbed/"
-# dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/04_05_cases-20210518/ParmaDataDicom/*"))
-# nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/04_05_cases-20210518/ParmaDataNifti/")
-# ##Utils().convert_dcm2nii(dcm_folder, nii_folder)
-# Utils().itk_convert_dcm2nii(dcm_folder, nii_folder)
+testbed = "testbed/"
+dcm_folder = glob.glob(str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/05_25_seg-20210601/Parma-Dicom-Data/*"))
+nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Parma/05_25_seg-20210601/Parma-Nifti-Data/")
+##Utils().convert_dcm2nii(dcm_folder, nii_folder)
+Utils().itk_convert_dcm2nii(dcm_folder, nii_folder)
 
 
 #######################################################################
 ## CT lung lobes segmentation
 ##input_folder = glob.glob(str(testbed + "/dataset_unibe/train-nii/*"))
-nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataNifti-1/*")
-input_folder = glob.glob(nii_folder)
-output_folder = str("//data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataLungSeg/")
-
-ls = LungSegmentations()
-for input_path in input_folder[:]:
-    ## Formatting the folder for each patient case
-    input_case = glob.glob(str(input_path + "/*"))
-    # input_case = input_path
-    folder_name = input_path.split(os.path.sep)[-1]
-    output_case = os.path.join(output_folder, folder_name)
-    Utils().mkdir(output_case)
-    # print("input_case: ", input_case)
-    # print("input_case: ", input_path)
-    ls.folder_segmentations(input_case, output_case, 'bi-lung', 5)
+# nii_folder = str("/data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataNifti-1/*")
+# input_folder = glob.glob(nii_folder)
+# output_folder = str("//data/01_UB/Multiomics-Data/Clinical_Imaging/Bern/06_11_cases-20210503/BernDataLungSeg/")
+#
+# ls = LungSegmentations()
+# for input_path in input_folder[:]:
+#     ## Formatting the folder for each patient case
+#     input_case = glob.glob(str(input_path + "/*"))
+#     # input_case = input_path
+#     folder_name = input_path.split(os.path.sep)[-1]
+#     output_case = os.path.join(output_folder, folder_name)
+#     Utils().mkdir(output_case)
+#     # print("input_case: ", input_case)
+#     # print("input_case: ", input_path)
+#     ls.folder_segmentations(input_case, output_case, 'bi-lung', 5)
     ## ls.folder_segmentations(input_case, output_case, 'lobes', 5)
 
 
