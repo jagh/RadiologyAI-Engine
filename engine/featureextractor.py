@@ -72,48 +72,48 @@ class RadiomicsExtractor:
             image_header_list.append(str("BB_" + key))
 
 
-        # glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask, **self.settings)
-        # extractor_glcm = glcmFeatures.execute()
-        # for (key, val) in six.iteritems(glcmFeatures.featureValues):
-        #     # print("key: {} || val: {}".format(key, val))
-        #     image_feature_list.append(val)
-        #     # image_header_list.append(str("glcmF_" + key))
-        #     image_header_list.append(str("CC_" + key))
+        glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask, **self.settings)
+        extractor_glcm = glcmFeatures.execute()
+        for (key, val) in six.iteritems(glcmFeatures.featureValues):
+            # print("key: {} || val: {}".format(key, val))
+            image_feature_list.append(val)
+            # image_header_list.append(str("glcmF_" + key))
+            image_header_list.append(str("CC_" + key))
 
 
-        # glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask, **self.settings)
-        # extractor_glszm = glszmFeatures.execute()
-        # for (key, val) in six.iteritems(glszmFeatures.featureValues):
-        #     # print("\t%s: %s" % (key, val))
-        #     image_feature_list.append(val)
-        #     image_header_list.append(str("GG_" + key))
-        #
-        #
-        # glrlmFeatures = glrlm.RadiomicsGLRLM(ct_image, ct_mask, **self.settings)
-        # extractor_glrlm = glrlmFeatures.execute()
-        # for (key, val) in six.iteritems(glrlmFeatures.featureValues):
-        #     # print("key: {} || val: {}".format(key, val))
-        #     image_feature_list.append(val)
-        #     # image_header_list.append(str("glcmF_" + key))
-        #     image_header_list.append(str("DD_" + key))
-        #
-        #
-        # ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask, **self.settings)
-        # extractor_ngtdm = ngtdmFeatures.execute()
-        # for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
-        #     # print("key: {} || val: {}".format(key, val))
-        #     image_feature_list.append(val)
-        #     # image_header_list.append(str("ngtdmF_" + key))
-        #     image_header_list.append(str("EE_" + key))
-        #
-        #
-        # gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask, **self.settings)
-        # extractor_gldm = gldmFeatures.execute()
-        # for (key, val) in six.iteritems(gldmFeatures.featureValues):
-        #     # print("key: {} || val: {}".format(key, val))
-        #     image_feature_list.append(val)
-        #     # image_header_list.append(str("ngtdmF_" + key))
-        #     image_header_list.append(str("FF_" + key))
+        glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask, **self.settings)
+        extractor_glszm = glszmFeatures.execute()
+        for (key, val) in six.iteritems(glszmFeatures.featureValues):
+            # print("\t%s: %s" % (key, val))
+            image_feature_list.append(val)
+            image_header_list.append(str("GG_" + key))
+
+
+        glrlmFeatures = glrlm.RadiomicsGLRLM(ct_image, ct_mask, **self.settings)
+        extractor_glrlm = glrlmFeatures.execute()
+        for (key, val) in six.iteritems(glrlmFeatures.featureValues):
+            # print("key: {} || val: {}".format(key, val))
+            image_feature_list.append(val)
+            # image_header_list.append(str("glcmF_" + key))
+            image_header_list.append(str("DD_" + key))
+
+
+        ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask, **self.settings)
+        extractor_ngtdm = ngtdmFeatures.execute()
+        for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
+            # print("key: {} || val: {}".format(key, val))
+            image_feature_list.append(val)
+            # image_header_list.append(str("ngtdmF_" + key))
+            image_header_list.append(str("EE_" + key))
+
+
+        gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask, **self.settings)
+        extractor_gldm = gldmFeatures.execute()
+        for (key, val) in six.iteritems(gldmFeatures.featureValues):
+            # print("key: {} || val: {}".format(key, val))
+            image_feature_list.append(val)
+            # image_header_list.append(str("ngtdmF_" + key))
+            image_header_list.append(str("FF_" + key))
 
 
         return image_feature_list, image_header_list

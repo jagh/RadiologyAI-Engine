@@ -242,8 +242,8 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
     n_components = 2
     # tsne = TSNE(n_components)
     tsne = manifold.TSNE(n_components=n_components, init='pca',
-                        learning_rate=50,
-                         random_state=1, perplexity=100)
+                        learning_rate=10,
+                        random_state=0, perplexity=100)
     tsne_result = tsne.fit_transform(X)
     tsne_result.shape
     # (1000, 2)
@@ -254,12 +254,12 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
     tsne_result_df = pd.DataFrame({'tsne_1': tsne_result[:,0], 'tsne_2': tsne_result[:,1], 'label': y})
     fig, ax = plt.subplots(1)
     # plt.figsize = (12, 12)
-    sns.scatterplot(x='tsne_1', y='tsne_2', hue='label', data=tsne_result_df, ax=ax,s=120)
+    sns.scatterplot(x='tsne_1', y='tsne_2', hue='label', data=tsne_result_df, ax=ax, s=80)
     lim = (tsne_result.min()-5, tsne_result.max()+5)
     ax.set_xlim(lim)
     ax.set_ylim(lim)
     ax.set_aspect('equal')
-    ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+    ax.legend(bbox_to_anchor=(1, 1), loc=2, borderaxespad=0.0)
 
 
 # #########################################
@@ -301,7 +301,9 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
 
 
 ## Second Exploration Experiments for pyRadiomics
-testbed_name = "tSNE-pyRadiomics-Bern-20-cases-SK"
+# testbed_name = "2D-All-MedicalImageProcessing"   ## Experiment folder
+testbed_name = "2D-All-MedicalImageProcessing-BK20210607"   ## Experiment folder
+
 
 
 radiomics_folder = os.path.join("testbed", testbed_name, "radiomics_features")
@@ -348,10 +350,13 @@ print("+ con_metadata: ", con_metadata.shape)
 
 
 ## Step-3: tSNE 2D projecttion with Yellowbrick
-# tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
-# tSNE_2D_projection(con_metadata, visualization_folder, "CON")
-#
+tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
+tSNE_2D_projection(con_metadata, visualization_folder, "CON")
+
 all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
+# print("+ metadata: ", all_metadata.head())
+print("+ metadata: ", all_metadata.shape)
+all_metadata = all_metadata.dropna()
 print("+ metadata: ", all_metadata.head())
 print("+ metadata: ", all_metadata.shape)
 tSNE_2D_projection(all_metadata, visualization_folder, "ALL")
