@@ -20,7 +20,10 @@ class MIM:
         self.mim_values_list.append(dice_coefficient)
         self.mim_header_list.append('dice_coefficient')
 
-        jaccard_coefficient = metric.binary.jc(result, reference)
+        try:
+            jaccard_coefficient = metric.binary.jc(result, reference)
+        except ZeroDivisionError:
+            jaccard_coefficient = 0.0
         self.mim_values_list.append(jaccard_coefficient)
         self.mim_header_list.append('jaccard_coefficient')
 
@@ -53,7 +56,10 @@ class MIM:
         self.mim_values_list.append(specificity)
         self.mim_header_list.append('specificity')
 
-        relative_absolute_volume_difference = metric.binary.ravd(result, reference)
+        try:
+            relative_absolute_volume_difference = metric.binary.ravd(result, reference)
+        except RuntimeError:
+            relative_absolute_volume_difference = 0.0
         self.mim_values_list.append(relative_absolute_volume_difference)
         self.mim_header_list.append('rel_absolute_volume_difference')
 
