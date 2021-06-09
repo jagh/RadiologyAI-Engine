@@ -36,18 +36,45 @@ def show_slices(slices):
 #######################################################################
 ## 2D Medical image processing
 #######################################################################
-## Dataset path definitions
-nifti_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Data/"
-lesion_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Seg/"
-dnn_lesion_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Seg-DNN/"
+## Dataset path definitions to compare ALL manual segmentation vs DDN segmentation
+nifti_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Data/"
+lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg/"
+dnn_lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg-DNN/"
 
 # metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing-JAGH.csv"
-metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing.csv"
-testbed_name = "2D-DiceCoefficient"   ## Experiment folder
+metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D-All_index_metrics_image_processing.csv"
+testbed_name = "2D-All-MedicalImageProcessing"   ## Experiment folder
 
-nifti_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Data/"
-lesion_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Seg/"
-lesion_dnn_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Seg/"
+
+
+#######################################################################
+## Dataset path definitions to compare GGO manual segmentation vs DDN segmentation
+# nifti_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Data/"
+# lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg-GGO/"
+# dnn_lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg-DNN/"
+#
+# # metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing-JAGH.csv"
+# metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D-All-GGO_index_metrics_image_processing.csv"
+# testbed_name = "2D-All-GGO-MedicalImageProcessing"   ## Experiment folder
+
+
+
+# #######################################################################
+# ## Dataset path definitions to compare GGO manual segmentation vs DDN segmentation
+# nifti_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Data/"
+# lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg-CON/"
+# dnn_lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg-DNN/"
+#
+# # metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing-JAGH.csv"
+# metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D-All-CON_index_metrics_image_processing.csv"
+# testbed_name = "2D-All-CON-MedicalImageProcessing"   ## Experiment folder
+
+
+
+
+# nifti_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Data/"
+# lesion_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Seg/"
+# lesion_dnn_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Seg/"
 
 ## Crete new folder for feature extraction
 mim_folder = os.path.join("testbed", testbed_name, "medical_image_metrics")
@@ -68,8 +95,7 @@ mim_file = open(output_mim_filename, 'w+')
 
 
 ## iterate between cases
-for row in range(20):
-# for row in range(metadata.shape[0]):
+for row in range(metadata.shape[0]):
 
     ## locating the CT and Seg
     ct_nifti_file = os.path.join(nifti_folder, metadata['ct_file_name'][row])
