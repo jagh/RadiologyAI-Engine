@@ -1,0 +1,3 @@
+[submodule "engine/third_party/nnUNet"]
+	path = engine/third_party/nnUNet
+	url = https://github.com/MIC-DKFZ/nnUNet.git

@@ -78,6 +78,11 @@ def pca_2D_projection(metadata, visualization_folder, fig_name):
     #            'FF_GrayLevelNonUniformity',	'FF_GrayLevelVariance',	'FF_HighGrayLevelEmphasis',	'FF_LargeDependenceEmphasis',
     #            'FF_LargeDependenceHighGrayLevelEmphasis',	'FF_LargeDependenceLowGrayLevelEmphasis',	'FF_LowGrayLevelEmphasis',
     #            'FF_SmallDependenceEmphasis',	'FF_SmallDependenceHighGrayLevelEmphasis',	'FF_SmallDependenceLowGrayLevelEmphasis'
+    #
+    #            'GG_GrayLevelNonUniformity',	'GG_GrayLevelNonUniformityNormalized',	'GG_GrayLevelVariance',
+    #            'GG_HighGrayLevelZoneEmphasis',	'GG_LargeAreaEmphasis',	'GG_LargeAreaHighGrayLevelEmphasis',	'GG_LargeAreaLowGrayLevelEmphasis',
+    #            'GG_LowGrayLevelZoneEmphasis',	'GG_SizeZoneNonUniformity',	'GG_SizeZoneNonUniformityNormalized',	'GG_SmallAreaEmphasis',
+    #            'GG_SmallAreaHighGrayLevelEmphasis', 'GG_SmallAreaLowGrayLevelEmphasis',	'GG_ZoneEntropy', 'GG_ZonePercentage', 'GG_ZoneVariance'
     #            ]
 
     ## Separating out the features
@@ -230,8 +235,13 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
             + Example: https://scikit-learn.org/stable/auto_examples/manifold/plot_t_sne_perplexity.html#sphx-glr-auto-examples-manifold-plot-t-sne-perplexity-py
     """
 
+
+
+
     ## Separating out the features
-    X = metadata.iloc[:,2:-1]
+    # X = metadata.iloc[:,2:-1]
+    X = metadata.iloc[:,:]
+
 
     ## Separating out the target
     # target = metadata.loc[:,['label_name']].values
@@ -334,8 +344,8 @@ print("+ con_metadata: ", con_metadata.shape)
 ## Step-1: Compute the feature correlations
 # plot_heatmap(ggo_metadata, visualization_folder, "GGO")
 # plot_heatmap(con_metadata, visualization_folder, "CON")
-#
-# ## Combining the dataset into 1
+
+## Combining the dataset into 1
 # all_metadata = pd.concat([ggo_metadata, con_metadata], axis=0)
 # print("+ metadata: ", all_metadata.head())
 # print("+ metadata: ", all_metadata.shape)
@@ -349,11 +359,50 @@ print("+ con_metadata: ", con_metadata.shape)
 # pca_2D_projection(all_metadata, visualization_folder, "ALL")
 
 
+
+
+
+## Feature Selection
+ggo_features = ['label_name',
+                'EE_Strength', 'BB_MeshSurface', 'BB_MaximumDiameter', 'CC_MaximumProbability',
+                'DD_GrayLevelVariance', 'EE_Contrast', 'FF_LargeDependenceHighGrayLevelEmphasis', 'AA_Energy',
+                'DD_LongRunEmphasis', 'DD_RunVariance', 'DD_ShortRunHighGrayLevelEmphasis', 'FF_HighGrayLevelEmphasis',
+                'GG_HighGrayLevelZoneEmphasis', 'DD_HighGrayLevelRunEmphasis', 'CC_ClusterTendency', 'CC_SumSquares',
+                'CC_DifferenceVariance', 'CC_SumAverage', 'BB_Sphericity', 'GG_LargeAreaLowGrayLevelEmphasis',
+                'CC_Correlation', 'CC_Idmn', 'DD_RunEntropy', 'GG_ZoneEntropy', 'GG_LargeAreaEmphasis',
+                'AA_Uniformity', 'CC_DifferenceAverage', 'DD_ShortRunEmphasis', 'DD_RunPercentage',
+                'GG_SizeZoneNonUniformityNormalized', 'CC_DifferenceEntropy', 'DD_RunLengthNonUniformity', 'FF_DependenceNonUniformityNormalized',
+                'AA_90Percentile', 'GG_GrayLevelNonUniformityNormalized', 'GG_SmallAreaEmphasis', 'GG_GrayLevelVariance',
+                'BB_Perimeter', 'CC_MCC', 'CC_InverseVariance', 'EE_Coarseness',
+                'BB_PerimeterSurfaceRatio', 'GG_SmallAreaLowGrayLevelEmphasis', 'FF_DependenceEntropy', 'CC_ClusterShade',
+                'AA_Minimum', 'DD_ShortRunLowGrayLevelEmphasis', 'DD_LowGrayLevelRunEmphasis',
+                ]
+
+
+con_features = ['label_name',
+                'CC_Contrast', 'CC_Imc1', 'DD_RunPercentage', 'CC_DifferenceVariance', 'GG_SizeZoneNonUniformityNormalized',
+                'GG_ZonePercentage', 'AA_Mean', 'AA_90Percentile', 'FF_LargeDependenceLowGrayLevelEmphasis',
+                'GG_GrayLevelVariance', 'AA_Variance', 'CC_ClusterTendency', 'AA_MeanAbsoluteDeviation',
+                'AA_RobustMeanAbsoluteDeviation', 'DD_LongRunHighGrayLevelEmphasis', 'CC_SumAverage', 'DD_HighGrayLevelRunEmphasis',
+                'FF_HighGrayLevelEmphasis',	'GG_SmallAreaHighGrayLevelEmphasis', 'AA_Entropy', 'DD_RunEntropy',
+                'BB_Elongation', 'BB_MaximumDiameter', 'AA_Energy', 'EE_Busyness',
+                'BB_Perimeter', 'BB_PixelSurface', 'GG_GrayLevelNonUniformity', 'FF_DependenceNonUniformity',
+                'AA_Range', 'AA_Kurtosis', 'DD_GrayLevelNonUniformityNormalized', 'DD_LowGrayLevelRunEmphasis',
+                'DD_ShortRunLowGrayLevelEmphasis', 'CC_Id', 'CC_JointEnergy', 'DD_LongRunLowGrayLevelEmphasis',
+                'DD_LongRunEmphasis', 'FF_DependenceVariance', 'GG_LargeAreaHighGrayLevelEmphasis', 'GG_LargeAreaEmphasis',
+                'AA_RootMeanSquared', 'CC_ClusterShade', 'CC_Correlation', 'GG_ZoneEntropy',
+                'CC_Idn', 'AA_Minimum', 'BB_PerimeterSurfaceRatio', 'EE_Coarseness',
+                ]
+
+
+ggo_metadata = ggo_metadata.loc[:, ggo_features]
+con_metadata = con_metadata.loc[:, con_features]
+
 ## Step-3: tSNE 2D projecttion with Yellowbrick
 tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
 tSNE_2D_projection(con_metadata, visualization_folder, "CON")
 
-all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
+all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,1:]], axis=1)
 # print("+ metadata: ", all_metadata.head())
 print("+ metadata: ", all_metadata.shape)
 all_metadata = all_metadata.dropna()
