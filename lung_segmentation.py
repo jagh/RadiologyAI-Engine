@@ -31,15 +31,42 @@ def run(args):
         print("CT segmentation file: {}".format(str(output_folder+"/"+ct_dcm_format)))
 
 
+import pandas as pd
+import json
+
 def main():
+
+    ######################################################################
+    ######################################################################
+    ##
+    # object = pd.read_pickle(r'/home/jagh/Documents/01_UB/17_lession_segmentation/05_nnUNet_Analysis/nnunet_issue/plans.pkl')
+    # # print('object: ', object)
+    # print('object: ', type(object))
+    #
+    # file_name = '/home/jagh/Documents/01_UB/17_lession_segmentation/05_nnUNet_Analysis/nnunet_issue/plans.txt'
+    # with open(file_name, 'w+') as f:
+    #     json.dump(object, f, indent=4)
+    ######################################################################
+    ######################################################################
+
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-2_85-CasesSegmented/02_Nifti-Data/')
-    parser.add_argument('-o', '--output', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-2_85-CasesSegmented/04_Nifiti-Seg-Bilung/')
+    parser.add_argument('-i', '--input', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_109-CasesSegmented/01_Nifti-Data/')
+    parser.add_argument('-o', '--output', default='//data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_109-CasesSegmented/03_Nifti-LungSeg/')
     parser.add_argument('-s', '--seg_method', type=str, default='bi-lung')
     parser.add_argument('-b', '--batch', type=int, default=5)
 
     args = parser.parse_args()
     run(args)
+
+
+    #
+    # with open(object) as json_file:
+    #     json_data = json.load(json_file)
+    # print(json_data)
+
+
+
 
 
 if __name__ == "__main__":
