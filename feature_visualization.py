@@ -312,7 +312,7 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
 
 ## Second Exploration Experiments for pyRadiomics
 # testbed_name = "2D-All-MedicalImageProcessing"   ## Experiment folder
-testbed_name = "2D-All-MedicalImageProcessing-BK20210607"   ## Experiment folder
+testbed_name = "2D-MulticlassLesionSegmentation"   ## Experiment folder
 
 
 
@@ -323,11 +323,13 @@ Utils().mkdir(visualization_folder)
 
 
 ## Read pyradiomics feature by segmentation
-ggo_metadata = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-0.csv") , sep=',')
-con_metadata = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-1.csv") , sep=',')
+# ggo_metadata = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-GGO.csv") , sep=',')
+ggo_metadata_0 = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-GGO-0.csv") , sep=',')
+ggo_metadata_1 = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-GGO-1.csv") , sep=',')
 # ate_metadata = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-2.csv") , sep=',')
-print("+ ggo_metadata: ", ggo_metadata.shape)
-print("+ con_metadata: ", con_metadata.shape)
+# print("+ ggo_metadata: ", ggo_metadata.shape)
+print("+ ggo_metadata: ", ggo_metadata_0.shape)
+print("+ ggo_metprint("++ Performance score: {}".format(test_score))adata: ", ggo_metadata_1.shape)
 
 
 ## Combining the dataset into 1
@@ -343,6 +345,8 @@ print("+ con_metadata: ", con_metadata.shape)
 
 ## Step-1: Compute the feature correlations
 # plot_heatmap(ggo_metadata, visualization_folder, "GGO")
+# plot_heatmap(ggo_metadata_0, visualization_folder, "GGO_0")
+plot_heatmap(ggo_metadata_1, visualization_folder, "GGO_1")
 # plot_heatmap(con_metadata, visualization_folder, "CON")
 
 ## Combining the dataset into 1
@@ -360,8 +364,8 @@ print("+ con_metadata: ", con_metadata.shape)
 
 
 
-
-
+#
+#
 ## Feature Selection
 ggo_features = ['label_name',
                 'EE_Strength', 'BB_MeshSurface', 'BB_MaximumDiameter', 'CC_MaximumProbability',
@@ -377,38 +381,41 @@ ggo_features = ['label_name',
                 'BB_PerimeterSurfaceRatio', 'GG_SmallAreaLowGrayLevelEmphasis', 'FF_DependenceEntropy', 'CC_ClusterShade',
                 'AA_Minimum', 'DD_ShortRunLowGrayLevelEmphasis', 'DD_LowGrayLevelRunEmphasis',
                 ]
+#
+#
+# con_features = ['label_name',
+#                 'CC_Contrast', 'CC_Imc1', 'DD_RunPercentage', 'CC_DifferenceVariance', 'GG_SizeZoneNonUniformityNormalized',
+#                 'GG_ZonePercentage', 'AA_Mean', 'AA_90Percentile', 'FF_LargeDependenceLowGrayLevelEmphasis',
+#                 'GG_GrayLevelVariance', 'AA_Variance', 'CC_ClusterTendency', 'AA_MeanAbsoluteDeviation',
+#                 'AA_RobustMeanAbsoluteDeviation', 'DD_LongRunHighGrayLevelEmphasis', 'CC_SumAverage', 'DD_HighGrayLevelRunEmphasis',
+#                 'FF_HighGrayLevelEmphasis',	'GG_SmallAreaHighGrayLevelEmphasis', 'AA_Entropy', 'DD_RunEntropy',
+#                 'BB_Elongation', 'BB_MaximumDiameter', 'AA_Energy', 'EE_Busyness',
+#                 'BB_Perimeter', 'BB_PixelSurface', 'GG_GrayLevelNonUniformity', 'FF_DependenceNonUniformity',
+#                 'AA_Range', 'AA_Kurtosis', 'DD_GrayLevelNonUniformityNormalized', 'DD_LowGrayLevelRunEmphasis',
+#                 'DD_ShortRunLowGrayLevelEmphasis', 'CC_Id', 'CC_JointEnergy', 'DD_LongRunLowGrayLevelEmphasis',
+#                 'DD_LongRunEmphasis', 'FF_DependenceVariance', 'GG_LargeAreaHighGrayLevelEmphasis', 'GG_LargeAreaEmphasis',
+#                 'AA_RootMeanSquared', 'CC_ClusterShade', 'CC_Correlation', 'GG_ZoneEntropy',
+#                 'CC_Idn', 'AA_Minimum', 'BB_PerimeterSurfaceRatio', 'EE_Coarseness',
+#                 ]
+#
+#
+# ggo_metadata = ggo_metadata.loc[:, ggo_features]
+# ggo_metadata_0 = ggo_metadata_0.loc[:, ggo_features]
+# ggo_metadata_1 = ggo_metadata_1.loc[:, ggo_features]
 
-
-con_features = ['label_name',
-                'CC_Contrast', 'CC_Imc1', 'DD_RunPercentage', 'CC_DifferenceVariance', 'GG_SizeZoneNonUniformityNormalized',
-                'GG_ZonePercentage', 'AA_Mean', 'AA_90Percentile', 'FF_LargeDependenceLowGrayLevelEmphasis',
-                'GG_GrayLevelVariance', 'AA_Variance', 'CC_ClusterTendency', 'AA_MeanAbsoluteDeviation',
-                'AA_RobustMeanAbsoluteDeviation', 'DD_LongRunHighGrayLevelEmphasis', 'CC_SumAverage', 'DD_HighGrayLevelRunEmphasis',
-                'FF_HighGrayLevelEmphasis',	'GG_SmallAreaHighGrayLevelEmphasis', 'AA_Entropy', 'DD_RunEntropy',
-                'BB_Elongation', 'BB_MaximumDiameter', 'AA_Energy', 'EE_Busyness',
-                'BB_Perimeter', 'BB_PixelSurface', 'GG_GrayLevelNonUniformity', 'FF_DependenceNonUniformity',
-                'AA_Range', 'AA_Kurtosis', 'DD_GrayLevelNonUniformityNormalized', 'DD_LowGrayLevelRunEmphasis',
-                'DD_ShortRunLowGrayLevelEmphasis', 'CC_Id', 'CC_JointEnergy', 'DD_LongRunLowGrayLevelEmphasis',
-                'DD_LongRunEmphasis', 'FF_DependenceVariance', 'GG_LargeAreaHighGrayLevelEmphasis', 'GG_LargeAreaEmphasis',
-                'AA_RootMeanSquared', 'CC_ClusterShade', 'CC_Correlation', 'GG_ZoneEntropy',
-                'CC_Idn', 'AA_Minimum', 'BB_PerimeterSurfaceRatio', 'EE_Coarseness',
-                ]
-
-
-ggo_metadata = ggo_metadata.loc[:, ggo_features]
-con_metadata = con_metadata.loc[:, con_features]
-
-## Step-3: tSNE 2D projecttion with Yellowbrick
-tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
-tSNE_2D_projection(con_metadata, visualization_folder, "CON")
-
-all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,1:]], axis=1)
+# con_metadata = con_metadata.loc[:, con_features]
+#
+# ## Step-3: tSNE 2D projecttion with Yellowbrick
+# tSNE_2D_projection(ggo_metadata, visualization_folder, "GGO")
+# tSNE_2D_projection(con_metadata, visualization_folder, "CON")
+#
+# all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,1:]], axis=1)
+# # print("+ metadata: ", all_metadata.head())
+# print("+ metadata: ", all_metadata.shape)
+# all_metadata = all_metadata.dropna()
 # print("+ metadata: ", all_metadata.head())
-print("+ metadata: ", all_metadata.shape)
-all_metadata = all_metadata.dropna()
-print("+ metadata: ", all_metadata.head())
-print("+ metadata: ", all_metadata.shape)
-tSNE_2D_projection(all_metadata, visualization_folder, "ALL")
+# print("+ metadata: ", all_metadata.shape)
+# tSNE_2D_projection(all_metadata, visualization_folder, "ALL")
 
 
 
