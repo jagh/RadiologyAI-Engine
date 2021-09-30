@@ -37,14 +37,30 @@ def show_slices(slices):
 ## 2D Medical image processing
 #######################################################################
 ## Dataset path definitions to compare ALL manual segmentation vs DDN segmentation
-nifti_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Data/"
-lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg/"
-dnn_lesion_folder = "/data/01_UB/CLINICCAI-2021/All-Nifti-Seg-DNN/"
+# nifti_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Data/"
+# lesion_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Seg-6-Classes/"
+nifti_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Data/"
+lesion_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Seg-6-Classes/"
+dnn_lesion_folder = "/data/01_UB/nnUNet_Sandbox/nnUNet_raw_data_base/nnUNet_raw_data/Task115_COVIDSegChallenge/3D-labelsTs/"
 
-# metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D_index_metrics_image_processing-JAGH.csv"
-metadata_file_path = "/data/01_UB/CLINICCAI-2021/2D-All_index_metrics_image_processing.csv"
-testbed_name = "2D-All-MedicalImageProcessing"   ## Experiment folder
 
+metadata_file_path = "/data/01_UB/2021-MedNeurIPS/111_dataframe_axial_slices_with_DNNindex.csv"
+testbed_name = "MedNeurIPS-nnUNetEvaluation"   ## Experiment folder
+
+#####################################################################
+## Read the metadata
+metadata_full = pd.read_csv(metadata_file_path, sep=',')
+print("++++++++++++++++++++++++++++++++++++++")
+# print("metadata: ", metadata_full.head())
+print("++ metadata: ", metadata_full.shape)
+
+## Using separate folder for training and test
+# metadata = metadata_full.query('split == "train"')
+metadata = metadata_full.query('split == "test"')
+metadata = metadata.reset_index(drop=True)
+# print("++ metadata:", metadata.head())
+print("++ Metadata Selected:", metadata.shape)
+print("++++++++++++++++++++++++++++++++++++++")
 
 
 #######################################################################
@@ -70,28 +86,29 @@ testbed_name = "2D-All-MedicalImageProcessing"   ## Experiment folder
 # testbed_name = "2D-All-CON-MedicalImageProcessing"   ## Experiment folder
 
 
-
-
 # nifti_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Data/"
 # lesion_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Seg/"
 # lesion_dnn_slices_folder = "/data/01_UB/CLINICCAI-2021/Bern-Nifti-Slices-Seg/"
 
-## Crete new folder for feature extraction
+
+#######################################################################
+## sandbox: Crete new folder for feature extraction
 mim_folder = os.path.join("testbed", testbed_name, "medical_image_metrics")
 Utils().mkdir(mim_folder)
 
-output_mim_filename = str(mim_folder+"/medical_image_metrics.csv")
+## Output file with metric results
+output_mim_filename = str(mim_folder+"/all_multiLesionSegmentation.csv")
+mim_file = open(output_mim_filename, 'w+')
 
 ## Feature extraction parameters
 write_header = False                    ## Flag to write the header of each file
 
 
-metadata = pd.read_csv(metadata_file_path, sep=',')
-print("metadata: ", metadata.head())
-print("metadata: ", metadata.shape)
-
-##
-mim_file = open(output_mim_filename, 'w+')
+##########################################################
+## Dataframe Duplicated reading process
+# metadata = pd.read_csv(metadata_file_path, sep=',')
+# print("metadata: ", metadata.head())
+# print("metadata: ", metadata.shape)
 
 
 ## iterate between cases
