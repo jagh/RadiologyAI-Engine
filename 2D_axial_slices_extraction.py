@@ -46,16 +46,34 @@ def show_slices(slices):
 #######################################################################
 ## Dataset path definitions
 #######################################################################
-nifti_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Data/"
-lesion_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Seg-6-Classes/"
-# nifti_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Data/"
-# lesion_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Seg-6-Classes/"
 
-nifti_slices_folder = "/data/01_UB/MedNeurIPS/2D-multiclassLesions-GT/axial_slicesTr-GT/"
-lesion_slices_folder = "/data/01_UB/MedNeurIPS/2D-multiclassLesions-GT/labels_slicesTr-GT/"
+#######################################################################
+## 3D Folder path for Lesion Seg. and CT scans
+# nifti_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Data/"
+# lesion_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Seg-6-Classes/"
+# # nifti_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Data/"
+# # lesion_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Seg-6-Classes/"
+#
+# ## Experiment folder Lesion Seg. and CT scans
+# testbed_name = "2D-MulticlassLesionSegmentation-GT"
 
-testbed_name = "2D-MulticlassLesionSegmentation-GT"   ## Experiment folder
-metadata_file_path = "/data/01_UB/2021-MedNeurIPS/111_dataframe_axial_slices.csv"
+#######################################################################
+## 3D Folder path for Lung Seg. and CT scans
+# nifti_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-Data/"
+# lesion_folder = "/data/01_UB/2021-MedNeurIPS/train_Nifti-LungSeg/"
+nifti_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-Data/"
+lesion_folder = "/data/01_UB/2021-MedNeurIPS/test_Nifti-LungSeg/"
+
+## Experiment folder Lung Seg. and CT scans
+testbed_name = "2D-LungSegmentation"
+
+## Output folder to host the axial slices
+nifti_slices_folder = "/data/01_UB/MedNeurIPS/2D-multiclassLesions-GT/lung_axial_slicesTs/"
+lesion_slices_folder = "/data/01_UB/MedNeurIPS/2D-multiclassLesions-GT/lung_labels_slicesTs/"
+
+
+## Metadata with DNN and Lung index
+metadata_file_path = "/data/01_UB/2021-MedNeurIPS/111_dataframe_axial_slices_with_DNN_and_Lung_index.csv"
 
 #####################################################################
 ## Read the metadata
@@ -65,8 +83,8 @@ print("++++++++++++++++++++++++++++++++++++++")
 print("++ metadata: ", metadata_full.shape)
 
 ## Using separate folder for training and test
-metadata = metadata_full.query('split == "train"')
-# metadata = metadata_full.query('split == "test"')
+# metadata = metadata_full.query('split == "train"')
+metadata = metadata_full.query('split == "test"')
 metadata = metadata.reset_index(drop=True)
 # print("++ metadata:", metadata.head())
 print("++ Metadata Selection:", metadata.shape)
@@ -93,9 +111,14 @@ for lesion_area in range(0, seg_layer_number):
     for row in range(metadata.shape[0]):
         # print('row', metadata.iloc[row])
 
-        ## locating the CT and Seg
+        ## locating the CT
         ct_nifti_file = os.path.join(nifti_folder, metadata['ct_file_name'][row])
-        lesion_nifti_file = os.path.join(lesion_folder, metadata['lesion_file_name'][row])
+
+        # ## locating the Lesion Seg.
+        # lesion_nifti_file = os.path.join(lesion_folder, metadata['lesion_file_name'][row])
+
+        ## locating the Lung Seg.
+        lesion_nifti_file = os.path.join(lesion_folder, metadata['dnn_lung_file_name'][row])
 
         slice_position = metadata['slice_position'][row]-1
         slice_with_lesion = metadata['slice_with_lesion'][row]
