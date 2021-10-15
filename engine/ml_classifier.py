@@ -14,6 +14,9 @@ from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Lasso
+
 from engine.utils import Utils
 
 import matplotlib
@@ -101,13 +104,15 @@ class MLClassifier:
         for classifier in classifiers:
             ## Machine learning Workflow
             pipe_clf = Pipeline([ ('clf', classifier) ])
+
             model_name = classifier.__class__.__name__
             print("--"*20)
             print("++ clf: {}".format(model_name))
 
             ## Encode labes as one-hot
             if model_name is 'RandomForestClassifier' and oh_flat is True:
-                labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+                # labels_name = ['CT-0', 'CT-1', 'CT-2', 'CT-3']
+                labels_name = ['Non-Intubated', 'Intubated']
                 y = pd.get_dummies(data=y, columns=labels_name).values
             else:
                 oh_flat = False
