@@ -312,7 +312,10 @@ def tSNE_2D_projection(metadata, visualization_folder, fig_name):
 
 ## Second Exploration Experiments for pyRadiomics
 # testbed_name = "2D-All-MedicalImageProcessing"   ## Experiment folder
-testbed_name = "2D-MulticlassLesionSegmentation"   ## Experiment folder
+# testbed_name = "2D-MulticlassLesionSegmentation"   ## Experiment folder
+
+
+testbed_name = "GENERAL-Intubated"   ## Experiment folder
 
 
 
@@ -324,12 +327,12 @@ Utils().mkdir(visualization_folder)
 
 ## Read pyradiomics feature by segmentation
 # ggo_metadata = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-GGO.csv") , sep=',')
-ggo_metadata_0 = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-GGO-0.csv") , sep=',')
-ggo_metadata_1 = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-GGO-1.csv") , sep=',')
+ggo_metadata = pd.read_csv(os.path.join(radiomics_folder, "general_lesion_lung_features-Tr_intubated.csv") , sep=',')
+# ggo_metadata = pd.read_csv(os.path.join(radiomics_folder, "general_lesion_lung_features-Tr_non-intubated.csv") , sep=',')
+# ggo_metadata_0 = pd.read_csv(os.path.join(radiomics_folder, "general_lesion_lung_features-Tr_non-intubated.csv") , sep=',')
 # ate_metadata = pd.read_csv(os.path.join(radiomics_folder, "lesion_features-2.csv") , sep=',')
 # print("+ ggo_metadata: ", ggo_metadata.shape)
-print("+ ggo_metadata: ", ggo_metadata_0.shape)
-print("+ ggo_metprint("++ Performance score: {}".format(test_score))adata: ", ggo_metadata_1.shape)
+print("+ ggo_metadata: ", ggo_metadata.shape)
 
 
 ## Combining the dataset into 1
@@ -344,9 +347,9 @@ print("+ ggo_metprint("++ Performance score: {}".format(test_score))adata: ", gg
 #######################################################################
 
 ## Step-1: Compute the feature correlations
-# plot_heatmap(ggo_metadata, visualization_folder, "GGO")
+plot_heatmap(ggo_metadata, visualization_folder, "GGO")
 # plot_heatmap(ggo_metadata_0, visualization_folder, "GGO_0")
-plot_heatmap(ggo_metadata_1, visualization_folder, "GGO_1")
+# plot_heatmap(ggo_metadata_1, visualization_folder, "GGO_1")
 # plot_heatmap(con_metadata, visualization_folder, "CON")
 
 ## Combining the dataset into 1
@@ -357,7 +360,7 @@ plot_heatmap(ggo_metadata_1, visualization_folder, "GGO_1")
 
 
 # ## Step-2: PCA 2D projecttion
-# pca_2D_projection(ggo_metadata, visualization_folder, "GGO")
+pca_2D_projection(ggo_metadata, visualization_folder, "GGO")
 # pca_2D_projection(con_metadata, visualization_folder, "CON")
 # all_metadata = pd.concat([ggo_metadata.iloc[:,:], con_metadata.iloc[:,2:-1]], axis=1)
 # pca_2D_projection(all_metadata, visualization_folder, "ALL")
@@ -367,20 +370,20 @@ plot_heatmap(ggo_metadata_1, visualization_folder, "GGO_1")
 #
 #
 ## Feature Selection
-ggo_features = ['label_name',
-                'EE_Strength', 'BB_MeshSurface', 'BB_MaximumDiameter', 'CC_MaximumProbability',
-                'DD_GrayLevelVariance', 'EE_Contrast', 'FF_LargeDependenceHighGrayLevelEmphasis', 'AA_Energy',
-                'DD_LongRunEmphasis', 'DD_RunVariance', 'DD_ShortRunHighGrayLevelEmphasis', 'FF_HighGrayLevelEmphasis',
-                'GG_HighGrayLevelZoneEmphasis', 'DD_HighGrayLevelRunEmphasis', 'CC_ClusterTendency', 'CC_SumSquares',
-                'CC_DifferenceVariance', 'CC_SumAverage', 'BB_Sphericity', 'GG_LargeAreaLowGrayLevelEmphasis',
-                'CC_Correlation', 'CC_Idmn', 'DD_RunEntropy', 'GG_ZoneEntropy', 'GG_LargeAreaEmphasis',
-                'AA_Uniformity', 'CC_DifferenceAverage', 'DD_ShortRunEmphasis', 'DD_RunPercentage',
-                'GG_SizeZoneNonUniformityNormalized', 'CC_DifferenceEntropy', 'DD_RunLengthNonUniformity', 'FF_DependenceNonUniformityNormalized',
-                'AA_90Percentile', 'GG_GrayLevelNonUniformityNormalized', 'GG_SmallAreaEmphasis', 'GG_GrayLevelVariance',
-                'BB_Perimeter', 'CC_MCC', 'CC_InverseVariance', 'EE_Coarseness',
-                'BB_PerimeterSurfaceRatio', 'GG_SmallAreaLowGrayLevelEmphasis', 'FF_DependenceEntropy', 'CC_ClusterShade',
-                'AA_Minimum', 'DD_ShortRunLowGrayLevelEmphasis', 'DD_LowGrayLevelRunEmphasis',
-                ]
+# ggo_features = ['label_name',
+#                 'EE_Strength', 'BB_MeshSurface', 'BB_MaximumDiameter', 'CC_MaximumProbability',
+#                 'DD_GrayLevelVariance', 'EE_Contrast', 'FF_LargeDependenceHighGrayLevelEmphasis', 'AA_Energy',
+#                 'DD_LongRunEmphasis', 'DD_RunVariance', 'DD_ShortRunHighGrayLevelEmphasis', 'FF_HighGrayLevelEmphasis',
+#                 'GG_HighGrayLevelZoneEmphasis', 'DD_HighGrayLevelRunEmphasis', 'CC_ClusterTendency', 'CC_SumSquares',
+#                 'CC_DifferenceVariance', 'CC_SumAverage', 'BB_Sphericity', 'GG_LargeAreaLowGrayLevelEmphasis',
+#                 'CC_Correlation', 'CC_Idmn', 'DD_RunEntropy', 'GG_ZoneEntropy', 'GG_LargeAreaEmphasis',
+#                 'AA_Uniformity', 'CC_DifferenceAverage', 'DD_ShortRunEmphasis', 'DD_RunPercentage',
+#                 'GG_SizeZoneNonUniformityNormalized', 'CC_DifferenceEntropy', 'DD_RunLengthNonUniformity', 'FF_DependenceNonUniformityNormalized',
+#                 'AA_90Percentile', 'GG_GrayLevelNonUniformityNormalized', 'GG_SmallAreaEmphasis', 'GG_GrayLevelVariance',
+#                 'BB_Perimeter', 'CC_MCC', 'CC_InverseVariance', 'EE_Coarseness',
+#                 'BB_PerimeterSurfaceRatio', 'GG_SmallAreaLowGrayLevelEmphasis', 'FF_DependenceEntropy', 'CC_ClusterShade',
+#                 'AA_Minimum', 'DD_ShortRunLowGrayLevelEmphasis', 'DD_LowGrayLevelRunEmphasis',
+#                 ]
 #
 #
 # con_features = ['label_name',
