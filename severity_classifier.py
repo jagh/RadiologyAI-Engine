@@ -279,7 +279,7 @@ gb_params = dict({'criterion': 'friedman_mse', 'init': None,
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
-# Step 4: Model evaluation per patients
+# Step 4: Model inference for patient assessment
 ########################################################
 
 ## Test file
