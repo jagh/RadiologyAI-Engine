@@ -11,8 +11,21 @@ class ImagePreprocessing:
     def __init__(self):
         pass
 
-    def relabel_segmentation(self, lesion_nifti_file):
-        """ Method to relabel each lesion segmentation"""
+    def relabel_sequential(self, lesion_nifti_file, sequence = [0, 1, 2, 4, 5, 6]):
+        """
+        Relabel the lesion segmentation using the given sequence.
+        Parameters
+        ----------
+        lesion_nifti_file : str
+            Path to the lesion segmentation file.
+        sequence : list
+            The sequence of the labels.
+
+        Returns
+        -------
+        relabel_lesion_nifti : Nifti Image
+            The relabeled lesion segmentation.
+        """
 
         ## 3D lesion scan load
         lesion = nib.load(lesion_nifti_file)
@@ -21,16 +34,15 @@ class ImagePreprocessing:
         # print("++ lesion_affine:", lesion_affine.shape)
 
         try:
-        ## Add relabel_lesion_folder
+            ## new lesion array
             relabel_lesion = np.zeros_like(lesion_array)
-            relabel_lesion[lesion_array == 0] = 0
-            relabel_lesion[lesion_array == 1] = 1
-            relabel_lesion[lesion_array == 2] = 2
-            # relabel_lesion[lesion_array == 3] = 3
-            relabel_lesion[lesion_array == 4] = 3
-            relabel_lesion[lesion_array == 5] = 4
-            relabel_lesion[lesion_array == 6] = 5
-            # relabel_lesion[lesion_array == 7] = 6
+
+            ## Change the sequence
+            new_sequence = 0
+            for seq in sequence:
+                relabel_lesion[lesion_array == seq] = new_sequence
+                new_sequence += 1
+
 
             relabel_lesion_nifti = nib.Nifti1Image(relabel_lesion, lesion_affine)
             return relabel_lesion_nifti
