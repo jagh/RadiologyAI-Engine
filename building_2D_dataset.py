@@ -10,10 +10,19 @@ from engine.utils import Utils
 from engine.preprocessing import ImagePreprocessing
 
 
-def run(args):
-    nii_folder = args.input
-    input_folder = glob.glob(nii_folder + "/*")
-    sandbox = args.sandbox
+def folder_relabel_segmentations(input_folder, sandbox):
+    """
+    This function is used to relabel the lesion nifti files stred in a folder.
+
+        :param input_path: the path of the input nifti file
+        :type input_path: str
+
+        :param sequence: the sequence of the relabel
+        :type sequence: list
+
+        :return: the relabeled nifti file
+        :rtype: nifti file
+    """
 
     ip = ImagePreprocessing()
     for input_path in input_folder:
@@ -32,8 +41,20 @@ def run(args):
 
 
 
+
+def run(args):
+    nii_folder = args.input
+    input_folder = glob.glob(nii_folder + "/*")
+    sandbox = args.sandbox
+
+    folder_relabel_segmentations(input_folder, sandbox)
+
+
+
+
 def main():
-    """    """
+    """
+    """
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', default='/data/01_UB/03_Data_developments/02_Nifti-Seg-6-Classes/')

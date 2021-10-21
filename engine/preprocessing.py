@@ -12,7 +12,20 @@ class ImagePreprocessing:
         pass
 
     def relabel_sequential(self, lesion_nifti_file, sequence = [0, 1, 2, 4, 5, 6]):
-        """ Method to relabel each lesion segmentation"""
+        """
+        Relabel the lesion segmentation using the given sequence.
+        Parameters
+        ----------
+        lesion_nifti_file : str
+            Path to the lesion segmentation file.
+        sequence : list
+            The sequence of the labels.
+
+        Returns
+        -------
+        relabel_lesion_nifti : Nifti Image
+            The relabeled lesion segmentation.
+        """
 
         ## 3D lesion scan load
         lesion = nib.load(lesion_nifti_file)
