@@ -83,7 +83,6 @@ class Utils:
             # print(" ++ nii_file_name: {}".format(nii_file_name[0]))
             # print(" ++ nii_new_name: {}".format(nii_new_name))
 
-
     def itk_convert_dcm2nii(self, dcm_folder, output_folder):
         """
         Function to convert dicom files to nifti file
@@ -113,6 +112,7 @@ class Utils:
             nii_file_name = os.path.join(nii_folder_path, str(folder_name + ".nii.gz"))
             self.write_nifti(dicom_img, nii_file_name)
             print('++ nii_file_name', nii_file_name)
+
 
 
 
