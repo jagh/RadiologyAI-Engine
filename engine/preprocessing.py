@@ -5,7 +5,7 @@ import numpy as np
 
 class SegProcessing:
     """
-    Module with preprocesing transformation of CTs
+    Module for preprocesing the CT segmentations
     """
 
     def __init__(self):
@@ -49,3 +49,43 @@ class SegProcessing:
 
         except(Exception, ValueError) as e:
             print("Not lesion segmentation")
+
+
+class ImageProcessing:
+        """
+        Module for preprocesing the CT images
+        """
+
+        def __init__(self):
+            pass
+
+        def extract_axial_slice_3D(self, nifti_file_name, axial_index):
+            """
+            This function extracts the axial slice from a 3D nifti file.
+            The function takes in the nifti file name and the axial index
+            and returns the axial slice.
+
+            Parameters
+            ----------
+            nifti_file_name : str
+                The nifti file name.
+            axial_index : int
+                The axial index of the slice.
+            Returns
+            -------
+            image_slice : nifti image
+                The axial slice of the nifti file.
+            """
+
+            ## get the ct array
+            image = nib.load(nifti_file_name)
+            image_array = image.get_fdata()
+            image_affine = image.affine
+
+            ## Get the axial slice in array for images and labels
+            image_slice = image_array[:, :, axial_index]
+
+            ## Axial slice transformation with shape (x, y, 1)
+            image_array_reshape = image_slice.reshape((512, 512, 1))
+
+            return nib.Nifti1Image(image_array_reshape, image_affine)
