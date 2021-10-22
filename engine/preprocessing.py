@@ -3,7 +3,7 @@ import nibabel as nib
 import numpy as np
 
 
-class ImagePreprocessing:
+class SegProcessing:
     """
     Module with preprocesing transformation of CTs
     """
