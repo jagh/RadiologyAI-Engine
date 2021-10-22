@@ -6,6 +6,7 @@ import SimpleITK as sitk
 
 import nibabel as nib
 import numpy as np
+import json
 
 
 class Utils:
@@ -42,13 +43,31 @@ class Utils:
         return reader.Execute();
 
     def write_nifti(self, image, file_name):
-        """ Function to write sitk images
-        + Slicer utils: https://github.com/Slicer/Slicer/blob/master/Base/Python/tests/test_sitkUtils.py
+        """
+        Function to write sitk images
+            + Slicer utils: https://github.com/Slicer/Slicer/blob/master/Base/Python/tests/test_sitkUtils.py
         """
         write = sitk.ImageFileWriter()
         write.SetFileName(file_name)
         write.SetImageIO('NiftiImageIO')
         write.Execute(image)
+
+    def get_file_identifiers(self, folder, suffix = '_0000.nii.gz'):
+        """
+        This function returns a list of file identifiers in a folder.
+        """
+        files = glob.glob(folder + "/*")
+        identifiers = []
+        for f in files:
+            f, _ = f.split(suffix)
+            f = f.split('/')
+            identifiers.append(f[-1])
+
+        return identifiers
+
+    def save_json(self, obj, file, indent= 4, sort_keys = True):
+        with open(file, 'w') as f:
+            json.dump(obj, f, sort_keys=sort_keys, indent=indent)
 
 
     def convert_dcm2nii(self, dcm_folder, output_folder):
