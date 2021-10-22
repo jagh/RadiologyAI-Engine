@@ -7,12 +7,13 @@ import glob
 import nibabel as nib
 
 import pandas as pd
+import numpy as np
 
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
 
 
-def image_conversion_to_nnunet(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train'):
+def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train'):
     """
     This function converts the dataset into a format that is compatible with the nnUNet framework.
     The function takes as input the metadata file, the folder containing the CTs, and
@@ -79,23 +80,93 @@ def image_conversion_to_nnunet(dataframe, cts_folder, seg_folder, sandbox='sandb
             print("+ Healthy axial slice or not GT: {} - {} ".format(axial_index, ct_file_name))
 
 
+def generate_json(sandbox='sandbox'):
+    """
+    Generate a json file to feed the nnunet framework.
+    The json file contains the following information:
+    - name: name of the dataset
+    - description: description of the dataset
+    - tensorImageSize: 3D or 2D
+    - reference: reference of the dataset
+    - licence: license of the dataset
+    - release: release of the dataset
+    - modality: modalities of the dataset
+    - labels: labels of the dataset
+    - numTraining: number of training samples
+    - numTest: number of test samples
+    - training: list of training samples
+    - test: list of test samples
+
+    Parameters
+    ----------
+        sandbox (str): Path to the sandbox folder
+
+    Returns
+    -------
+        None
+    """
+
+    ## Dataset conversion params
+    imagesTr_dir            = os.path.join(sandbox, "imagesTr")
+    imagesTs_dir            = os.path.join(sandbox, "imagesTs")
+    modalities              = ["SK"]
+    labels                  = {0: 'foreground', 1: 'GGO', 2: 'CON', #3: 'ATE',
+                                                3: 'PLE', 4: 'BAN', 5: 'TBR'}
+    dataset_name            = "Task115_COVID-19",
+    license                 = "Hands on",
+    dataset_description     = "Axial slice multi-class lesion segmentation for covid-19 patients",
+    dataset_reference       = "Multiomics 2D slices",
+    dataset_release         = '0.1'
+
+    ## Get indetifier files
+    train_identifiers = Utils().get_file_identifiers(imagesTr_dir)
+    test_identifiers = Utils().get_file_identifiers(imagesTs_dir)
+
+    ## Construction of json to feed the nnunet framework
+    output_file = os.path.join(sandbox, "dataset.json")
+    json_dict   = {}
+    json_dict['name']               = dataset_name
+    json_dict['description']        = dataset_description
+    json_dict['tensorImageSize']    = "3D"
+    json_dict['reference']          = dataset_reference
+    json_dict['licence']            = license
+    json_dict['release']            = dataset_release
+    json_dict['modality']           = {str(i): modalities[i] for i in range(len(modalities))}
+    json_dict['labels']             = {str(i): labels[i] for i in labels.keys()}
+
+    json_dict['numTraining']        = len(train_identifiers)
+    json_dict['numTest']            = len(test_identifiers)
+    json_dict['training']           = [{'image': "./imagesTr/%s.nii.gz" % i,
+                                        "label": "./labelsTr/%s.nii.gz" % i} for i in train_identifiers]
+    json_dict['test']               = ["./imagesTs/%s.nii.gz" % i for i in test_identifiers]
+
+    ## Write output file in sandbox folder
+    if not os.path.exists(output_file):
+        os.path.join(sandbox, "dataset.json")
+    Utils().save_json(json_dict, os.path.join(output_file))
+
+
 
 def run(args):
-
-    image_conversion_to_nnunet(args.dataframe, args.cts_folder, args.seg_folder,
-                                            args.sandbox, args.split)
+    """
+    Run the pipeline to build a 2D dataset from CT scans
+    :param dataframe: Path to the dataframe containing the CT scans
+    :param cts_folder: Path to the folder containing the CT scans
+    :param seg_folder: Path to the folder containing the segmentations
+    :param sandbox: Path to the sandbox where intermediate results are stored
+    """
+    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
+    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
+    generate_json(args.sandbox)
 
 
 def main():
-    """
-    """
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/sandbox/')
     parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/2_dataframe_axial_slices.csv')
     parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_Nifti-Data/')
     parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/sandbox/00-relabel_folder/')
-    parser.add_argument('-sp', '--split', default='train')
 
     args = parser.parse_args()
     run(args)
