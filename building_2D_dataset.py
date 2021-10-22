@@ -9,16 +9,14 @@ import nibabel as nib
 import pandas as pd
 
 from engine.utils import Utils
-from engine.preprocessing import SegProcessing
+from engine.preprocessing import ImageProcessing
 
 
-def dataset_conversion(dataframe, cts_folder, seg_folder,
-                                            sandbox='sandbox', split='train'):
+def image_conversion_to_nnunet(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train'):
     """
-    This function converts the dataset into a format that is compatible
-    with the nnUNet framework. The function takes as input the metadata file,
-    the folder containing the CTs, and the folder containing the manual segmentations.
-    The function creates a folder for the images and another for the labels.
+    This function converts the dataset into a format that is compatible with the nnUNet framework.
+    The function takes as input the metadata file, the folder containing the CTs, and
+    the folder containing the manual segmentations.
     Finally, the function iterates over the metadata file and creates a Nifit file
     for each axial slice with shape (x, y, 1).
 
@@ -54,60 +52,38 @@ def dataset_conversion(dataframe, cts_folder, seg_folder,
     Utils().mkdir(axial_slices_folder)
     Utils().mkdir(axial_labels_folder)
 
-    ## Iterate between cases
+    ## Iterate between axial slices
     for row in range(metadata.shape[0]):
-
         ## Locating the CTs and labels
-        ct_nifti_file = os.path.join(cts_folder, metadata['ct_file_name'][row])
-        lesion_nifti_file = os.path.join(seg_folder, metadata['lesion_file_name'][row])
+        ct_file_name = os.path.join(cts_folder, metadata['ct_file_name'][row])
+        lesion_file_name = os.path.join(seg_folder, metadata['lesion_file_name'][row])
 
         ## Fix the position of the slice and check for lesion
-        slice_position = metadata['slice_position'][row]-1
-        slice_with_lesion = metadata['slice_with_lesion'][row]
+        axial_index = metadata['slice_position'][row]-1
+        axial_with_lesion = metadata['slice_with_lesion'][row]
 
-        if slice_with_lesion == 1:
-            ## get the ct array
-            ct = nib.load(ct_nifti_file)
-            ct_scan_array = ct.get_fdata()
-            ct_scan_affine = ct.affine
-
-            ## get the seg array
-            lesion = nib.load(lesion_nifti_file)
-            lesion_array = lesion.get_fdata()
-            lesion_affine = lesion.affine
-
-            ## Get the axial slice in array for images and labels
-            ct_slice = ct_scan_array[:, :, slice_position]
-            lesion_slice = lesion_array[:, :, slice_position]
-
-            ## Axial slice transformation with shape (x, y, 1)
-            ct_array_reshape = ct_slice.reshape((512, 512, 1))
-            lesion_array_reshape = lesion_slice.reshape((512, 512, 1))
-
-            ## Create a Nifit file for each axial slice
-            ct_nifti = nib.Nifti1Image(ct_array_reshape, ct_scan_affine)
-            lesion_nifti = nib.Nifti1Image(lesion_array_reshape, lesion_affine)
+        if axial_with_lesion == 1:
+            ct_nifti = ImageProcessing().extract_axial_slice_3D(ct_file_name, axial_index)
+            lesion_nifti = ImageProcessing().extract_axial_slice_3D(lesion_file_name, axial_index)
 
             ## Set the file name for each axial slice and add the mode _0000 for SK
-            ct_slice_name = str(metadata['id_case'][row]) + '-' + str(slice_position) + '_0000.nii.gz'
-            lesion_slice_name = str(metadata['id_case'][row]) + '-' + str(slice_position) + '_0000.nii.gz'
+            ct_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '_0000.nii.gz'
+            lesion_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '_0000.nii.gz'
 
             ## Write axial slices to a Nifti file for each axial slice
             nib.save(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
             nib.save(lesion_nifti, os.path.join(axial_labels_folder, lesion_slice_name))
 
         else:
-            ## Healthy slices or no manual segmentations
-            pass
+            ## Healthy axial slice or not GT
+            print("+ Healthy axial slice or not GT: {} - {} ".format(axial_index, ct_file_name))
 
 
 
 def run(args):
-    """ Pipeline to build an axial slice dataset """
 
-    dataset_conversion(args.dataframe, args.cts_folder, args.seg_folder,
+    image_conversion_to_nnunet(args.dataframe, args.cts_folder, args.seg_folder,
                                             args.sandbox, args.split)
-
 
 
 def main():
@@ -119,7 +95,7 @@ def main():
     parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/2_dataframe_axial_slices.csv')
     parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_Nifti-Data/')
     parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/sandbox/00-relabel_folder/')
-    parser.add_argument('-split', '--split', default='train')
+    parser.add_argument('-sp', '--split', default='train')
 
     args = parser.parse_args()
     run(args)
