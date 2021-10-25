@@ -47,8 +47,8 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default='/data/01_UB/00_Dev/02_Nifti-Seg-6-Classes/')
-    parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/sandbox/')
+    parser.add_argument('-i', '--input', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/02_Nifti-Seg-6-Classes/')
+    parser.add_argument('-s', '--sandbox', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/')
 
     args = parser.parse_args()
     run(args)

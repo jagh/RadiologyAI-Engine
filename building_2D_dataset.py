@@ -69,7 +69,7 @@ def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='
 
             ## Set the file name for each axial slice and add the mode _0000 for SK
             ct_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '_0000.nii.gz'
-            lesion_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '_0000.nii.gz'
+            lesion_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '.nii.gz'
 
             ## Write axial slices to a Nifti file for each axial slice
             nib.save(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
@@ -155,18 +155,18 @@ def run(args):
     :param seg_folder: Path to the folder containing the segmentations
     :param sandbox: Path to the sandbox where intermediate results are stored
     """
-    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
-    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
+    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
+    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
     generate_json(args.sandbox)
 
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/sandbox/')
-    parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/2_dataframe_axial_slices.csv')
-    parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_Nifti-Data/')
-    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/sandbox/00-relabel_folder/')
+    parser.add_argument('-s', '--sandbox', default='/data/01_UB/nnUNet_Sandbox/nnUNet_raw_data_base/nnUNet_raw_data/Task115_COVIDSegChallenge/')
+    parser.add_argument('-d', '--dataframe', default='/home/jagh/Documents/01_conferences_submitted/00_MIA-Explainable_2021/dataset/122_dataframe_axial_slices.csv')
+    parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/01_Nifti-Data/')
+    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/03-relabel_folder/')
 
     args = parser.parse_args()
     run(args)
