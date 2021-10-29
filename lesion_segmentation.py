@@ -55,7 +55,7 @@ def convert_axial_slices(dataframe, cts_folder, sandbox='sandbox', split='train'
     Utils().mkdir(axial_slices_folder)
 
     ## Iterate between axial slices
-    for row in range(6, metadata.shape[0]):
+    for row in range(metadata.shape[0]):
         ## Locating the CTs and labels
         ct_file_name = os.path.join(cts_folder, metadata['ct_file_name'][row])
         print("+ ct_file_name: ", ct_file_name)
