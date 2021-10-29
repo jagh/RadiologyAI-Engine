@@ -85,7 +85,10 @@ class ImageProcessing:
             ## Get the axial slice in array for images and labels
             image_slice = image_array[:, :, axial_index]
 
-            ## Axial slice transformation with shape (1, x, y)
-            image_array_reshape = image_slice.reshape((1, 512, 512))
+            # ## Axial slice transformation with shape (x, y, 1) -> 'patch_size':([  1, 512])
+            image_array_reshape = image_slice.reshape((512, 512, 1))
+
+            ## Axial slice transformation with shape (1, x, y) -> 'patch_size': array([512,   1])
+            # image_array_reshape = image_slice.reshape((1, 512, 512))
 
             return nib.Nifti1Image(image_array_reshape, image_affine)

@@ -13,7 +13,7 @@ from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
 
 
-def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train'):
+def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train', task='bi-lung'):
     """
     This function converts the dataset into a format that is compatible with the nnUNet framework.
     The function takes as input the metadata file, the folder containing the CTs, and
@@ -57,7 +57,11 @@ def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='
     for row in range(metadata.shape[0]):
         ## Locating the CTs and labels
         ct_file_name = os.path.join(cts_folder, metadata['ct_file_name'][row])
-        lesion_file_name = os.path.join(seg_folder, metadata['lesion_file_name'][row])
+
+        if task == 'bi-lung':
+            lesion_file_name = os.path.join(seg_folder, metadata['dnn_lung_file_name'][row])
+        else:
+            lesion_file_name = os.path.join(seg_folder, metadata['lesion_file_name'][row])
 
         ## Fix the position of the slice and check for lesion
         axial_index = metadata['slice_position'][row]-1
@@ -80,7 +84,7 @@ def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='
             print("+ Healthy axial slice or not GT: {} - {} ".format(axial_index, ct_file_name))
 
 
-def generate_json(sandbox='sandbox'):
+def generate_json(sandbox='sandbox', task='bi-lung'):
     """
     Generate a json file to feed the nnunet framework.
     The json file contains the following information:
@@ -110,11 +114,17 @@ def generate_json(sandbox='sandbox'):
     imagesTr_dir            = os.path.join(sandbox, "imagesTr")
     imagesTs_dir            = os.path.join(sandbox, "imagesTs")
     modalities              = ["SK"]
-    labels                  = {0: 'foreground', 1: 'GGO', 2: 'CON', #3: 'ATE',
-                                                3: 'PLE', 4: 'BAN', 5: 'TBR'}
+
+    if task == 'bi-lung':
+        labels                  = {0: 'foreground', 1: 'LT', 2: 'RT'}
+        dataset_description     = "Axial slice lung segmentation for covid-19 patient",
+    else:
+        labels                  = {0: 'foreground', 1: 'GGO', 2: 'CON', #3: 'ATE',
+                                            3: 'PLE', 4: 'BAN', 5: 'TBR'}
+        dataset_description     = "Axial slice multi-class lesion segmentation for covid-19 patients",
+
     dataset_name            = "Task115_COVID-19",
     license                 = "Hands on",
-    dataset_description     = "Axial slice multi-class lesion segmentation for covid-19 patients",
     dataset_reference       = "Multiomics 2D slices",
     dataset_release         = '0.1'
 
@@ -127,7 +137,7 @@ def generate_json(sandbox='sandbox'):
     json_dict   = {}
     json_dict['name']               = dataset_name
     json_dict['description']        = dataset_description
-    json_dict['tensorImageSize']    = "3D"
+    json_dict['tensorImageSize']    = "4D"
     json_dict['reference']          = dataset_reference
     json_dict['licence']            = license
     json_dict['release']            = dataset_release
@@ -155,8 +165,8 @@ def run(args):
     :param seg_folder: Path to the folder containing the segmentations
     :param sandbox: Path to the sandbox where intermediate results are stored
     """
-    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
-    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
+    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
+    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
     generate_json(args.sandbox)
 
 
@@ -166,7 +176,8 @@ def main():
     parser.add_argument('-s', '--sandbox', default='/data/01_UB/nnUNet_Sandbox/nnUNet_raw_data_base/nnUNet_raw_data/Task115_COVIDSegChallenge/')
     parser.add_argument('-d', '--dataframe', default='/home/jagh/Documents/01_conferences_submitted/00_MIA-Explainable_2021/dataset/122_dataframe_axial_slices.csv')
     parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/01_Nifti-Data/')
-    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/03-relabel_folder/')
+    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/02_Step-3_122-CasesSegmented/03_Nifti-LungSeg/')
+    parser.add_argument('-t', '--task', default='bi-lung')
 
     args = parser.parse_args()
     run(args)
