@@ -5,6 +5,7 @@ import argparse
 import sys, os
 import glob
 import nibabel as nib
+import SimpleITK as sitk
 
 import pandas as pd
 import numpy as np
@@ -68,16 +69,20 @@ def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='
         axial_with_lesion = metadata['slice_with_lesion'][row]
 
         if axial_with_lesion == 1:
-            ct_nifti = ImageProcessing().extract_axial_slice_3D(ct_file_name, axial_index)
-            lesion_nifti = ImageProcessing().extract_axial_slice_3D(lesion_file_name, axial_index)
+            ct_nifti = ImageProcessing().extract_3D_slices(ct_file_name, axial_index)
+            lesion_nifti = ImageProcessing().extract_3D_slices(lesion_file_name, axial_index)
 
             ## Set the file name for each axial slice and add the mode _0000 for SK
             ct_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '_0000.nii.gz'
             lesion_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '.nii.gz'
 
-            ## Write axial slices to a Nifti file for each axial slice
-            nib.save(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
-            nib.save(lesion_nifti, os.path.join(axial_labels_folder, lesion_slice_name))
+            # ## nibabel -> Write axial slices to a Nifti file for each axial slice
+            # nib.save(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
+            # nib.save(lesion_nifti, os.path.join(axial_labels_folder, lesion_slice_name))
+
+            ## SimpleITK Write axial slices to a Nifti file for each axial slice
+            sitk.WriteImage(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
+            sitk.WriteImage(lesion_nifti, os.path.join(axial_labels_folder, lesion_slice_name))
 
         else:
             ## Healthy axial slice or not GT

@@ -2,6 +2,8 @@
 import nibabel as nib
 import numpy as np
 
+import SimpleITK as sitk
+
 
 class SegProcessing:
     """
@@ -51,6 +53,7 @@ class SegProcessing:
             print("Not lesion segmentation")
 
 
+
 class ImageProcessing:
         """
         Module for preprocesing the CT images
@@ -92,3 +95,39 @@ class ImageProcessing:
             image_array_reshape = image_slice.reshape((1, 512, 512))
 
             return nib.Nifti1Image(image_array_reshape, image_affine)
+
+
+        def extract_3D_slices(self, nifti_file_name, axial_index):
+            """
+            This function extracts the axial slice from a 3D nifti file.
+            The function takes in the nifti file name and the axial index
+            and returns the axial slice.
+
+            Parameters
+            ----------
+            nifti_file_name : str
+                The nifti file name.
+            axial_index : int
+                The axial index of the slice.
+            Returns
+            -------
+            image_slice : nifti image
+                The axial slice of the nifti file.
+            """
+
+            ## SimpleITK -> get the ct array
+            image_array = sitk.GetArrayFromImage(sitk.ReadImage(nifti_file_name))
+            image_itk = sitk.ReadImage(nifti_file_name)
+
+            ## Get the axial slice in array for images and labels
+            image_slice = image_array[axial_index, :, :]
+            # print("image_array: ", image_array.shape)
+            # print("image_slice: ", image_slice.shape)
+
+            ## SimpleITK for axial slice transformation with shape (1, x, y)
+            image_array_reshape = image_slice.reshape((1, 512, 512))
+
+            # axial_slice_3D = sitk.GetImageFromArray(image_array_reshape)
+            # axial_slice_3D.CopyInformation(seg_itk)
+
+            return sitk.GetImageFromArray(image_array_reshape)
