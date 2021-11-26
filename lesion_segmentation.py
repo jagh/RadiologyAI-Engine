@@ -352,8 +352,8 @@ def run(args):
     # build_3D_images('train')
     # build_3D_images('test')
 
-    # build_3D_images_GT('train')
-    build_3D_images_GT('test')
+    build_3D_images_GT('train')
+    # build_3D_images_GT('test')
 
 
 def main():
