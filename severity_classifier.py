@@ -27,9 +27,12 @@ from sklearn.metrics import roc_auc_score
 import sklearn.metrics as metrics
 
 
-## Step-1: From multiple files define features, labels and spliting the dataset
+
 def load_features(file_path):
-    """Read features and labels per file"""
+    """
+    Read features and labels per file.
+    Step-1: From multiple files define features, labels and spliting the dataset
+    """
     data = pd.read_csv(file_path, sep=',', header=0)
     ## Set features and labels, discard the two cases for a GGO 'CT-4'
     # X_data = data.values[:,3:].astype(np.float).astype("Int32")  #[:1107,2:]
@@ -307,10 +310,6 @@ def model_entropy(testbed, experiment_name, experiment_filename, model_name='Ran
     metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
     Utils().mkdir(metrics_folder)
     cases_predicted.to_csv(os.path.join(metrics_folder, str(model_name +".csv")))
-
-
-
-
 
 
 
