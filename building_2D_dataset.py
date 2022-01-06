@@ -56,6 +56,7 @@ def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='
 
     ## Iterate between axial slices
     for row in range(metadata.shape[0]):
+
         ## Locating the CTs and labels
         ct_file_name = os.path.join(cts_folder, metadata['ct_file_name'][row])
 
@@ -87,7 +88,6 @@ def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='
         else:
             ## Healthy axial slice or not GT
             print("+ Healthy axial slice or not GT: {} - {} ".format(axial_index, ct_file_name))
-
 
 def generate_json(sandbox='sandbox', task='bi-lung'):
     """
