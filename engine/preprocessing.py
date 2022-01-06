@@ -119,15 +119,17 @@ class ImageProcessing:
             image_array = sitk.GetArrayFromImage(sitk.ReadImage(nifti_file_name))
             image_itk = sitk.ReadImage(nifti_file_name)
 
-            ## Get the axial slice in array for images and labels
-            image_slice = image_array[axial_index, :, :]
-            # print("image_array: ", image_array.shape)
-            # print("image_slice: ", image_slice.shape)
+            try:
+                ## Get the axial slice in array for images and labels
+                image_slice = image_array[axial_index, :, :]
 
-            ## SimpleITK for axial slice transformation with shape (1, x, y)
-            image_array_reshape = image_slice.reshape((1, 512, 512))
+                ## SimpleITK for axial slice transformation with shape (1, x, y)
+                image_array_reshape = image_slice.reshape((1, 512, 512))
 
-            # axial_slice_3D = sitk.GetImageFromArray(image_array_reshape)
-            # axial_slice_3D.CopyInformation(seg_itk)
+                # axial_slice_3D = sitk.GetImageFromArray(image_array_reshape)
+                # axial_slice_3D.CopyInformation(seg_itk)
 
-            return sitk.GetImageFromArray(image_array_reshape)
+                return sitk.GetImageFromArray(image_array_reshape)
+
+            except IndexError:
+                print("+ IndexError: index {} is out of bounds in {}".format(axial_index, nifti_file_name))
