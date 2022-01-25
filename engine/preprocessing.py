@@ -45,12 +45,50 @@ class SegProcessing:
                 relabel_lesion[lesion_array == seq] = new_sequence
                 new_sequence += 1
 
-
             relabel_lesion_nifti = nib.Nifti1Image(relabel_lesion, lesion_affine)
             return relabel_lesion_nifti
 
         except(Exception, ValueError) as e:
             print("Not lesion segmentation")
+
+    def label_overlap(self, lesion_nifti_file, sequence = [1, 2, 3, 4, 5]):
+        """
+        This function takes a 3D lesion segmentation file and change the label values according to the sequence.
+        Parameters
+        ----------
+        lesion_nifti_file : str
+            Path to the lesion segmentation file.
+        sequence : list(int)
+            The sequence of the labels.
+
+        Returns
+        -------
+        relabel_lesion_nifti : Nifti Image
+            The relabeled lesion segmentation.
+        """
+        ## 3D lesion scan load
+        lesion = nib.load(lesion_nifti_file)
+        lesion_array = lesion.get_fdata()
+        lesion_affine = lesion.affine
+        # print("++ lesion_affine:", lesion_affine.shape)
+
+        try:
+            ## new lesion array
+            new_label = np.zeros_like(lesion_array)
+
+            ## Change the sequence
+            new_sequence = 1
+            for seq in sequence:
+                new_label[lesion_array == seq] = new_sequence
+            new_label[lesion_array == 0] = 0
+            new_label[lesion_array == 5] = 0
+
+            new_label_nifti = nib.Nifti1Image(new_label, lesion_affine)
+            return new_label_nifti
+
+        except(Exception, ValueError) as e:
+            print("Not lesion segmentation")
+
 
 
 
