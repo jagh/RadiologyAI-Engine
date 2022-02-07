@@ -128,8 +128,6 @@ def build_3D_images(cts_folder, sandbox, task='bi-lung'):
         nib.save(new_3D_lesion_nifti, ct_slice_output_path)
 
 
-
-
 def run(args):
     """
     Run the pipeline to build a 2D dataset from CT scans
