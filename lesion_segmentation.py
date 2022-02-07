@@ -79,8 +79,6 @@ def convert_axial_slices(dataframe, cts_folder, seg_folder, sandbox='sandbox', s
             ## SimpleITK Write axial slices to a Nifti file for each axial slice
             sitk.WriteImage(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
 
-
-
 def build_3D_images(split='train', task='bi-lung'):
 
     ## Testbed path
@@ -193,7 +191,6 @@ def build_3D_images(split='train', task='bi-lung'):
 
         ## and write the nifti files
         nib.save(new_3D_lesion_nifti, ct_slice_output_path)
-
 
 def build_3D_images_GT(split='train', task='bi-lung'):
 
