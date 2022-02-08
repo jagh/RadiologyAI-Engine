@@ -29,9 +29,58 @@ import SimpleITK as sitk
 
 import pandas as pd
 import numpy as np
+import csv
 
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
+
+
+def extract_slices_index():
+    """ Function to extract the indices of the axial slides
+        from the manual segmentations for each case"""
+
+    patient_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Bern_Cases_8class/B0004_01_200321_CT_SK"
+
+    xlsx_filename = "B0004_01_200321_CT.xlsx"
+    xlsx_file = os.path.join(patient_folder, xlsx_filename)
+
+    df = pd.read_excel(xlsx_file, engine='openpyxl', index_col=None, header=None)
+    # print("df", df)
+    # print("df", df.shape)
+
+
+    ct_name = xlsx_filename.split(".xlsx")[0]
+    print("ct_name: ", ct_name)
+
+
+    ## axial_slices_list
+    filename = str("testbed" + "axial_slices_index_list.csv")
+    features_file = open(filename, 'w+')
+
+
+    ## Transpose the dataframe and iterate between the rows
+    transpose_df = df.T
+    for row in transpose_df.iteritems():
+        axial_slices_index_list = []
+        if row[0] == 2:
+            print("top: {} || Bottom: {}".format(row[1][2], row[1][3]))
+        if row[0] < 7:
+            pass
+        elif row[0] < 17:
+            print("row index: {} || value: {}".format(row[0], row[1][3]))
+
+            ## List append values to build a row
+            axial_slices_index_list.append(ct_name)
+            axial_slices_index_list.append(row[1][3])
+
+            csvw = csv.writer(features_file)
+            csvw.writerow(axial_slices_index_list)
+
+            print("axial_slices_index_list: ", axial_slices_index_list)
+
+        else:
+            break
+
 
 
 def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train', task='bi-lung'):
@@ -190,9 +239,10 @@ def run(args):
     :param seg_folder: Path to the folder containing the segmentations
     :param sandbox: Path to the sandbox where intermediate results are stored
     """
-    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
-    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
-    generate_json(args.sandbox)
+    extract_slices_index()
+    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
+    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
+    # generate_json(args.sandbox)
 
 
 def main():
