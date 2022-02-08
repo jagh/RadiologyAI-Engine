@@ -1,3 +1,23 @@
+"""
+**2D_dataset_creation.py**
+
+    Objective:
+        - To build a 2D dataset for training a 2D-UNet model based on nnunet.
+        - To extract 2D axial slice features with pyradiomics features.
+
+    Input:
+        - CT folder, GT folder, CSV file with the axial slices indice, and sanbox.
+
+    Methods:
+        - convert_images(...)
+        - generate_json(...)
+
+    Output:
+        - Axial slice files per each CT into a sandbox
+"""
+
+
+
 
 import logging
 import argparse
