@@ -1,11 +1,34 @@
+"""
+**2D_segmentation_deployment.py**
+
+    Objective:
+        - Generate the SNF multi-class lesion or lung segmentation in 2D axial slice files.
+        - Then, execute the nnUNet to generate the segmentation outputs.
+        - Finally, reconstruct the 3D segmentation per each CT, using the 3D volume affinity.
+
+    Input:
+        - CT folder, sandbox, and the segmentation task.
+
+    Methods:
+        - convert_images(...)
+        - build_3D_images(...)
+
+    Output:
+        - 3D segmentation file in Nifti format.
+"""
+
+
+
 
 import logging
 import argparse
 
 import sys, os
 import glob
+
 import nibabel as nib
 import SimpleITK as sitk
+import skimage.io as io
 
 import pandas as pd
 import numpy as np
@@ -13,6 +36,36 @@ import numpy as np
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
 
+
+def convert_mha_to_nii(cts_folder):
+    """
+    """
+    nii_folder = "/data/03_MICCAI/data/nii"
+
+    ## Create a directory for images and labels inside the Sandbox directory
+    Utils().mkdir(nii_folder)
+
+    input_folder = glob.glob(cts_folder + "/*")
+
+    ## Iterate between axial slices
+    for input_path in input_folder[:]:
+
+        ## Get folder name
+        folder_name = input_path.split(os.path.sep)[-1]
+        # print("folder_name: ", folder_name)
+        print("+ input_path: ", input_path)
+
+        ## Read the CT scan file
+        img = sitk.ReadImage(input_path)
+
+        ## Set the file name for each axial slice and add the mode _0000 for SK
+        # ct_name = folder_name.split(".nii.gz")[0]
+        ct_name = folder_name.split(".mha.gz")[0]
+        ct_name_nii = str(ct_name + '.nii.gz')
+        # print("ct_slice_name: ", ct_slice_name)
+
+        ## SimpleITK Write axial slices to a Nifti file for each axial slice
+        sitk.WriteImage(img, os.path.join(nii_folder, ct_name_nii))
 
 def convert_images(cts_folder, sandbox, task):
     """
@@ -33,16 +86,14 @@ def convert_images(cts_folder, sandbox, task):
         # print("folder_name: ", folder_name)
         print("+ input_path: ", input_path)
 
-        ## get the ct array
+        ## get the ct array for Nifti
         image = nib.load(input_path)
         image_array = image.get_fdata()
         image_affine = image.affine
-        print("+ image_array: ", image_array.shape[2])
-
+        # print("+ image_array: ", image_array.shape[2])
 
         for axial_index in range(image_array.shape[2]):
             ct_nifti = ImageProcessing().extract_3D_slices(input_path, axial_index)
-
 
             ## Set the file name for each axial slice and add the mode _0000 for SK
             ct_name = folder_name.split(".nii.gz")[0]
@@ -136,15 +187,17 @@ def run(args):
     :param seg_folder: Path to the folder containing the segmentations
     :param sandbox: Path to the sandbox where intermediate results are stored
     """
+    convert_mha_to_nii(args.cts_folder)
     # convert_images(args.cts_folder, args.sandbox, args.task)
-    build_3D_images(args.cts_folder, args.sandbox, args.task)
+    # build_3D_images(args.cts_folder, args.sandbox, args.task)
 
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--cts_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/04_included_cases_FP/01_Nifti-Data_SK/')
-    parser.add_argument('-s', '--sandbox', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/04_included_cases_FP/sandbox')
+    # parser.add_argument('-c', '--cts_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/04_included_cases_FP/01_Nifti-Data_SK/')
+    parser.add_argument('-c', '--cts_folder', default='/data/03_MICCAI/data/mha/')
+    parser.add_argument('-s', '--sandbox', default='/data/03_MICCAI/sandbox')
     # parser.add_argument('-t', '--task', default='snf-bilung')
     parser.add_argument('-t', '--task', default='snf-lesion')
 
