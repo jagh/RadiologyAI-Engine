@@ -34,52 +34,108 @@ import csv
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
 
+def open_and_write_slices(patient_folder, slices_index_file, borders_index_file):
+    """"""
+    ## Get folder name
+    folder_name = patient_folder.split(os.path.sep)[-1]
+    # print("+ folder_name: ", folder_name)
 
-def extract_slices_index():
-    """ Function to extract the indices of the axial slides
-        from the manual segmentations for each case"""
-
-    patient_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Bern_Cases_8class/B0004_01_200321_CT_SK"
-
-    xlsx_filename = "B0004_01_200321_CT.xlsx"
-    xlsx_file = os.path.join(patient_folder, xlsx_filename)
-
+    ## Get xlsx file and read excel file
+    xlsx_file = glob.glob(patient_folder + "/*.xlsx")[0]
     df = pd.read_excel(xlsx_file, engine='openpyxl', index_col=None, header=None)
-    # print("df", df)
-    # print("df", df.shape)
 
-
-    ct_name = xlsx_filename.split(".xlsx")[0]
-    print("ct_name: ", ct_name)
-
-
-    ## axial_slices_list
-    filename = str("testbed" + "axial_slices_index_list.csv")
-    features_file = open(filename, 'w+')
-
+    ## Set CT name the same as folder name
+    ct_name = folder_name
 
     ## Transpose the dataframe and iterate between the rows
     transpose_df = df.T
     for row in transpose_df.iteritems():
-        axial_slices_index_list = []
+        # print("+ row:", type(row[0]))
+        # print("+ row:", row[1][0])
+
+
+        # if type(row[0]) is tuple:
+        #     print("+ row :", row)
+        #     print("+ row 0:", row[0])
+        #     print("+ row 10:", row[1][0])
+        #     flat_row = False
+        # #     pass
+        #
+        # if type(row[0]) is tuple:
+        #     del row
+        #     print("+ row :", row)
+        #     print("+ row 0:", row[0][0])
+        #     print("+ row 0:", type(row[0]))
+        #     print("+ row 10:", row[1][0])
+        #     flat_row = False
+        #     del row[1]
+        #     # row[0] = int(999)
+        #     # print("++ row[0]: ", row[0])
+        # else:
+        #     flat_row = True
+
+
+
+
+
+
         if row[0] == 2:
-            print("top: {} || Bottom: {}".format(row[1][2], row[1][3]))
-        if row[0] < 7:
+            ## Initialize the list
+            lung_borders_index_list = []
+            ## List append values to build a row
+            lung_borders_index_list.append(ct_name)
+            lung_borders_index_list.append(row[1][2])
+            lung_borders_index_list.append(row[1][3])
+            ## write each row in the lung borders file
+            csvw = csv.writer(borders_index_file)
+            csvw.writerow(lung_borders_index_list)
+            # print("lung_borders_index_list: ", lung_borders_index_list)
+        elif row[0] < 7:
             pass
         elif row[0] < 17:
-            print("row index: {} || value: {}".format(row[0], row[1][3]))
-
+            ## Initialize the list
+            axial_slices_index_list = []
             ## List append values to build a row
             axial_slices_index_list.append(ct_name)
             axial_slices_index_list.append(row[1][3])
-
-            csvw = csv.writer(features_file)
+            ## write each row in the axial slices file
+            csvw = csv.writer(slices_index_file)
             csvw.writerow(axial_slices_index_list)
-
-            print("axial_slices_index_list: ", axial_slices_index_list)
-
+            # print("axial_slices_index_list: ", axial_slices_index_list)
         else:
             break
+
+
+
+def extract_slices_index():
+    """ Function to extract the axial slices index by CT """
+
+    center = "PARMA"    #"YALE"     #"PARMA"    #"BERN"
+
+    ## Set file names and open them
+    slices_indes_filename = os.path.join("testbed", str(center+"-axial_slices_index_list.csv"))
+    slices_index_file = open(slices_indes_filename, 'w+')
+
+    borders_index_filename = os.path.join("testbed", str(center+"-lung_borders_index_list.csv"))
+    borders_index_file = open(borders_index_filename, 'w+')
+
+    if center == "BERN":
+        cts_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Bern_Cases_8class"
+    elif center == "PARMA":
+        cts_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Parma_Cases_8class"
+    elif center == "YALE":
+        cts_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Yale_Cases_8class"
+    else:
+        print("+ center not found!")
+
+    global_folder = glob.glob(cts_folder + "/*")
+
+    ## Iterate between axial slices
+    for patient_folder in global_folder[:]:
+        print("+ patient_folder: ", patient_folder)
+        open_and_write_slices(patient_folder, slices_index_file, borders_index_file)
+
+
 
 
 
