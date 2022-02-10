@@ -50,34 +50,6 @@ def open_and_write_slices(patient_folder, slices_index_file, borders_index_file)
     ## Transpose the dataframe and iterate between the rows
     transpose_df = df.T
     for row in transpose_df.iteritems():
-        # print("+ row:", type(row[0]))
-        # print("+ row:", row[1][0])
-
-
-        # if type(row[0]) is tuple:
-        #     print("+ row :", row)
-        #     print("+ row 0:", row[0])
-        #     print("+ row 10:", row[1][0])
-        #     flat_row = False
-        # #     pass
-        #
-        # if type(row[0]) is tuple:
-        #     del row
-        #     print("+ row :", row)
-        #     print("+ row 0:", row[0][0])
-        #     print("+ row 0:", type(row[0]))
-        #     print("+ row 10:", row[1][0])
-        #     flat_row = False
-        #     del row[1]
-        #     # row[0] = int(999)
-        #     # print("++ row[0]: ", row[0])
-        # else:
-        #     flat_row = True
-
-
-
-
-
 
         if row[0] == 2:
             ## Initialize the list
