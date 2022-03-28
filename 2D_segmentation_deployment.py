@@ -118,7 +118,12 @@ def build_3D_images(cts_folder, sandbox, task='bi-lung'):
 
 
     ## Iterate between axial slices
-    for input_path in input_folder:
+    # for input_path in input_folder:
+    # for input_path in input_folder[0:199]:  ##G1
+    # for input_path in input_folder[199:499]:  ##G2
+    # for input_path in input_folder[499:799]:  ##G3
+    # for input_path in input_folder[799:999]:  ##G4
+    for input_path in input_folder[999:1199]:  ##G5
 
         ## Get folder name
         ct_file_name = input_path.split(os.path.sep)[-1]
@@ -142,7 +147,7 @@ def build_3D_images(cts_folder, sandbox, task='bi-lung'):
         for slice_position in range(ct_scan_array.shape[2]):
 
             ## Set file path of the 2D axial lesion
-            axial_slices_per_case_file = str(axial_labels_folder + "/" + case_name + "-" + str(slice_position) + ".nii.gz")
+            axial_slices_per_case_file = str(axial_labels_folder + "/" + case_name + ".nii.gz-" + str(slice_position) + ".nii.gz")
 
             ## Reads .nii file and get the numpy image array
             axial_lesion = nib.load(axial_slices_per_case_file)
@@ -187,17 +192,17 @@ def run(args):
     :param seg_folder: Path to the folder containing the segmentations
     :param sandbox: Path to the sandbox where intermediate results are stored
     """
-    convert_mha_to_nii(args.cts_folder)
+    # convert_mha_to_nii(args.cts_folder)
     # convert_images(args.cts_folder, args.sandbox, args.task)
-    # build_3D_images(args.cts_folder, args.sandbox, args.task)
+    build_3D_images(args.cts_folder, args.sandbox, args.task)
 
 
 def main():
 
     parser = argparse.ArgumentParser()
     # parser.add_argument('-c', '--cts_folder', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/04_included_cases_FP/01_Nifti-Data_SK/')
-    parser.add_argument('-c', '--cts_folder', default='/data/03_MICCAI/data/mha/')
-    parser.add_argument('-s', '--sandbox', default='/data/03_MICCAI/sandbox')
+    parser.add_argument('-c', '--cts_folder', default='/data/03_MICCAI/data/nii/')
+    parser.add_argument('-s', '--sandbox', default='/data/03_MICCAI/sandbox-G5/')
     # parser.add_argument('-t', '--task', default='snf-bilung')
     parser.add_argument('-t', '--task', default='snf-lesion')
 

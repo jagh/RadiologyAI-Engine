@@ -270,9 +270,18 @@ class RadiomicsExtractor:
         print("+ Type(df_shape) : ", type(df_shape))
 
         df_shape.to_csv(bb_filename_case, sep=',', index=False)
-
         return df_shape
 
+    def get_shapeFeatures2D(self, ct_image, ct_mask, image_feature_list, image_header_list):
+        ## Get Shape Features in 3D
+        shapeFeatures2D = shape.RadiomicsShape(ct_image, ct_mask, **self.settings)
+        extractor_shape = shapeFeatures2D.execute()
+        for (key, val) in six.iteritems(shapeFeatures2D.featureValues):
+            # print("key: {} || val: {}".format(key, val))
+            image_feature_list.append(val)
+            # image_header_list.append(str("sF3D_" + key))
+            image_header_list.append(str("bb_" + key))
+        return image_feature_list, image_header_list
 
     ## cc_
     def get_glcmFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
@@ -360,12 +369,17 @@ class RadiomicsExtractor:
             print("+ get_firstOrderFeatures:", radiomics_set)
             image_feature_list, image_header_list = self.get_firstOrderFeatures(ct_image, ct_mask,
                                                 image_feature_list, image_header_list)
-        elif "bb" == radiomics_set:
+        elif "3D_bb" == radiomics_set:
             print("!! Get shapeFeatures3D:", radiomics_set)
             df_shape = self.get_shapeFeatures3D(ct_image_path, ct_mask_path, bb_filename_case)
         # elif "bb" == radiomics_set:
         #     print("++ get_shapeFeatures3D:", radiomics_set)
         #     df_shape = self.get_shapeFeatures3D(ct_image, ct_mask, bb_filename_case)
+
+        elif "bb" == radiomics_set:
+            print("+ get_shapeFeatures2D:", radiomics_set)
+            image_feature_list, image_header_list = self.get_shapeFeatures2D(ct_image, ct_mask,
+                                                    image_feature_list, image_header_list)
         elif "cc" == radiomics_set:
             print("+ get_glcmFeatures:", radiomics_set)
             image_feature_list, image_header_list = self.get_glcmFeatures(ct_image, ct_mask,
@@ -391,7 +405,7 @@ class RadiomicsExtractor:
 
 
         ###############################
-        if "bb" == radiomics_set:
+        if "3D-bb" == radiomics_set:
             return df_shape
         else:
             return image_feature_list, image_header_list
