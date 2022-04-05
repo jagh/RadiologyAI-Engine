@@ -403,10 +403,50 @@ def plot_radiomic_features(testbed, experiment_name, experiment_filename, model_
 import pickle
 import xgboost as xgb
 
-import numpy as np
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import KFold, train_test_split, GridSearchCV
 from sklearn.metrics import confusion_matrix, mean_squared_error
 from sklearn.metrics import f1_score
+
+
+def stratifiedShuffleSplit(testbed, experiment_name, experiment_filename):
+    ## Step-2: ML Training and Grid Search
+
+    ## Accessing the data
+    radiomics_folder = os.path.join(testbed, experiment_name, "radiomics_features/")
+    features_file_path = os.path.join(radiomics_folder, experiment_filename)
+
+
+    ## Load_features_index
+    data = pd.read_csv(features_file_path, sep=',', header=0)
+    ## Set features and labels, discard the two cases for a GGO 'CT-4'
+    # X_data = data.values[:,3:].astype(np.float).astype("Int32")  #[:1107,2:]
+    X_data = data.values[:,1:]  #.astype(np.float)  #[:1107,2:]
+    y_data = data.values[:,0]   #[:1107,1]
+    # y_data=y_data.astype('int')
+
+    ## Create a ML folder and splitting the dataset
+    eval_split = StratifiedShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
+    for train_index, test_index in eval_split.split(X_data, y_data):
+        X_train, X_test = X_data[train_index], X_data[test_index]
+        y_train, y_test = y_data[train_index], y_data[test_index]
+        # print("train_index: {} || test_index: {} ".format(str(train_index.shape), str(test_index.shape) ))
+
+    print("X_train: {} || y_train: {} ".format(str(X_train.shape), str(y_train.shape)))
+    print("X_test: {} || y_test: {} ".format(str(X_test.shape), str(y_test.shape) ))
+
+
+    ####################
+    dataframeTr = pd.DataFrame(y_train, X_train)
+    dataframeTr_file_path = os.path.join(radiomics_folder, "3DgenerealFF_dataframeTr")
+    dataframeTr.to_csv(dataframeTr_file_path, sep=',', index=True)
+    # print("dataframeTr: ", dataframeTr)
+
+
+    dataframeTs = pd.DataFrame(y_test, X_test)
+    dataframeTs_file_path = os.path.join(radiomics_folder, "3DgenerealFF_dataframeTs")
+    dataframeTs.to_csv(dataframeTs_file_path, sep=',', index=True)
+    print("dataframeTs: ", dataframeTs)
 
 def xgboostTraining(testbed, experiment_name, experiment_filename):
     ## Step-2: ML Training and Grid Search
