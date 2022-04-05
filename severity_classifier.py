@@ -38,7 +38,7 @@ def load_features(file_path):
     ## Set features and labels, discard the two cases for a GGO 'CT-4'
     # X_data = data.values[:,3:].astype(np.float).astype("Int32")  #[:1107,2:]
     X_data = data.values[:,3:].astype(np.float)  #[:1107,2:]
-    y_data = data.values[:,1]   #[:1107,1]
+    y_data = data.values[:,2]   #[:1107,1]
     y_data=y_data.astype('int')
     print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
     return X_data, y_data
@@ -50,7 +50,7 @@ def load_features_index(file_path):
     ## Set features and labels, discard the two cases for a GGO 'CT-4'
     # X_data = data.values[:,3:].astype(np.float).astype("Int32")  #[:1107,2:]
     X_data = data.values[:,3:].astype(np.float)  #[:1107,2:]
-    y_data = data.values[:,1]   #[:1107,1]
+    y_data = data.values[:,2]   #[:1107,1]
     y_data = y_data.astype('int')
     X_index = data.values[:,1].astype('str')
     print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
@@ -171,8 +171,8 @@ def model_evaluation(testbed, experiment_name, experiment_filename, model_name='
 
 
     ## Plot the the confusion matrix by model selected
-    labels_name = ['Non-Intubated', 'Intubated']
-    # labels_name = ['3', '4', '5', '6', '8', '9']
+    labels_name = ['3', '4', '5', '6', '8', '9']
+    # labels_name = ['Non-Intubated', 'Intubated']
     plot_confusion_matrix(page_clf, X_test, y_test,
                                 display_labels=labels_name,
                                 cmap=plt.cm.Blues,
@@ -798,13 +798,26 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
 
         train_score = f1_score(actuals, predictions, average='macro')
         print("++ Train F1-Score: {}".format(train_score))
-        # print(confusion_matrix(actuals, predictions))
+        print(confusion_matrix(actuals, predictions))
+
+
+        ## Plot the the confusion matrix by model selected
+        # labels_name = ['Non-Intubated', 'Intubated']
+        labels_name = ['3', '4', '5', '6', '8', '9']
+        # labels_name = ['4', '5', '6', '8', '9']
+        plot_confusion_matrix(xgb_model, X, y,
+                                    display_labels=labels_name,
+                                    cmap=plt.cm.Blues,
+                                    # normalize='true'
+                                    ) #, xticks_rotation=15)
+        plt.title(str(" XGBoost || F1-score: "+ str(train_score)))
+        plt.show()
 
 
 
         ##---------------------------------------------------------------------
         ## Load dataset
-        test_lesion_features_file_path = os.path.join(radiomics_folder, "3DGGO-118S-FF-2T-Ts.csv")
+        test_lesion_features_file_path = os.path.join(radiomics_folder, "cov2radiomics-Ts-FeatureSelection-WHO.csv")
         X_test, y_test = load_features(test_lesion_features_file_path)
 
         ## Training performance
@@ -817,8 +830,8 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
 
 
         ## Plot the the confusion matrix by model selected
-        labels_name = ['Non-Intubated', 'Intubated']
-        # labels_name = ['3', '4', '5', '6', '8', '9']
+        # labels_name = ['Non-Intubated', 'Intubated']
+        labels_name = ['3', '4', '5', '6', '8', '9']
         plot_confusion_matrix(xgb_model, X_test, y_test,
                                     display_labels=labels_name,
                                     cmap=plt.cm.Blues,
@@ -834,7 +847,12 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
 
 
 def run(args):
-    testbed = "testbed-WHO/"
+    testbed = "testbed-WHO-20220325/"
+
+    ## Features selected
+    experiment_name = "03_MULTICLASS"
+    # experiment_filename = "cov2radiomics-Tr-FeatureSelection-WHO.csv"
+    experiment_filename = "cov2radiomics-Ts-FeatureSelection-WHO.csv"
 
     # ## Features selected
     # experiment_name = "02_GENERAL-FI"
@@ -848,10 +866,10 @@ def run(args):
     # experiment_filename = "3DMUL-118S-FF-2T-Ts.csv"
 
 
-    ## Features selected
-    experiment_name = "02_GGO-FI"
-    # experiment_filename = "3DGGO-118S-FF-2T-Tr.csv"
-    experiment_filename = "3DGGO-118S-FF-2T-Ts.csv"
+    # ## Features selected
+    # experiment_name = "02_GGO-FI"
+    # # experiment_filename = "3DGGO-118S-FF-2T-Tr.csv"
+    # experiment_filename = "3DGGO-118S-FF-2T-Ts.csv"
 
 
     # ## Features selected
