@@ -534,7 +534,138 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
 
 
 
+def model_evaluation_patients(testbed, experiment_name, test_set_filename, model_name='RandomForestClassifier'):
+    """ Evaluation at the patient level """
 
+    ## General Lesion Full Features
+    radiomics_folder = os.path.join(testbed, experiment_name, "radiomics_features/")
+    test_lesion_features_file_path = os.path.join(radiomics_folder, test_set_filename)
+
+    ## Read the dataset for training the model
+    ml_folder = os.path.join(testbed, experiment_name, "machine_learning/")
+    model_path = str(ml_folder+'/models/')
+
+    ## Use oh_flat to encode labels as one-hot for RandomForestClassifier
+    oh_flat = True
+
+
+    ##---------------------------------------------------------------------
+    ## Load dataset
+    X_test, y_test, X_index = load_features_index(test_lesion_features_file_path)
+    # print("X_eval: {} || y_eval: {} ".format(str(X_test.shape), str(y_test.shape)))
+
+    ## ML evaluation
+    mlc = MLClassifier()
+    page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
+
+    ## predictions has the format-> {non_intubated: 0.1522, intubated: 0.8477}
+    y_predicted = page_clf.predict(X_test)
+
+    # print("y_test", type(y_test))
+    # print("y_predicted", type(y_predicted))
+    ## y_score = f1_score(y_test, y_predicted, average='macro')
+    y_score = f1_score(y_test, y_predicted, average='micro')
+    print("+ Micro F1-score: ", y_score)
+
+    ## Entropy measument
+    predicted_probs = page_clf.predict_proba(X_test)
+    # print("X_test: ", X_test.shape)
+    # print("y_predicted: ", y_predicted.shape)
+    # print("predicted_probs: ", predicted_probs.shape)
+
+
+    ## Concatenate the id_case and predicted
+    # slices_pred_ = pd.DataFrame((X_index, y_test, y_predicted, predicted_probs[:, 1]))
+    slices_pred_ = pd.DataFrame((X_index, y_test, y_predicted, predicted_probs))
+    slices_predicted = pd.DataFrame(slices_pred_.T.values,
+                        columns=['id_case', 'y_test', 'y_predicted', 'predicted_probs'])
+    # print("+ Slices_predicted: ", slices_predicted)
+
+
+    ## Groupby per slices_pred_
+    test_num_slices = slices_predicted.groupby(['id_case']).count()
+    test_num_slices = test_num_slices.reset_index()
+    print("+ test_num_slices: ", test_num_slices)
+
+
+
+    ###############################################################################
+    ## Loop between the numbers
+    patient_predicted = []
+    patient_id = []
+    # cases_predicted = pd.DataFrame()
+    cases_predicted = []
+    for row in test_num_slices.T.iteritems():
+        print("---"*10)
+        id_case = row[1][0]
+        total_slices = row[1][1]
+        print("+ id_case: ", id_case)
+        print("+ total_slices: ", total_slices)
+
+        ## Step-1: Collecting slice-wise predictions by case
+        predictions_per_case = slices_predicted.loc[lambda df: df['id_case'] == id_case]
+        # print('+ Predictions per case: ', predictions_per_case['y_predicted'].shape)
+
+        ## Step-2: Grouping and counting the predictions by each who class
+        predictions_per_case_groupby = predictions_per_case.groupby(['y_predicted']).count()
+        # print('+ Groupby Predictions per slice: ', predictions_per_case_groupby)
+
+        ## Step-3: Parsng the who-class-wise count
+        predictions_per_case_groupby.reset_index(inplace=True)
+        predictions_per_case_values = predictions_per_case_groupby.values
+        # print("+ predictions_per_case_values: ", type(predictions_per_case_values))
+        # print("+ predictions_per_case_values: ", predictions_per_case_values[:, 1])
+
+        ## Step-4: Get max votes and get the index of the who class
+        max_votes = predictions_per_case_values[:, 1].max(axis=0)
+        index_who_score = np.where(predictions_per_case_values[:, 1] == max_votes)
+        print("+ index_who_score: ", index_who_score[0][0])
+
+        ## Step-5: Get the who score by index
+        list_of_predictions = predictions_per_case_values[:, 0].tolist()
+        who_prediction_patient = list_of_predictions[index_who_score[0][0]]
+        print("+ list_of_predictions: ", who_prediction_patient)
+
+        cases_predicted.append((id_case, who_prediction_patient, total_slices))
+
+
+
+        # ########################################################################
+        # ########################################################################
+        # ## Compute Entropy
+        # series_of_probabilities_per_case = predictions_per_case['predicted_probs'].values.tolist()
+        # # print("+ Series__probabilities", series_of_probabilities_per_case)
+        # # print("series_of_predictios_per_case", type(series_of_predictios_per_case))
+        #
+        # predicted_entropy = entropy(series_of_probabilities_per_case, axis=1)
+        # average_entropy = np.average(predicted_entropy)
+        # std_entropy = np.std(predicted_entropy)
+        # # print("+ Predicted_entropy: ", predicted_entropy)
+        # # print("+ Entropy AVG: {}, STD: {}".format(average_entropy, std_entropy))
+        #
+        # # case_pred_ = pd.DataFrame((X_index, y_test, y_predicted, average_entropy, std_entropy))
+        # # cases_predicted = cases_predicted.append(case_pred_)# assign it back
+        #
+        # ## Compute score
+        # y_test_series_per_case = predictions_per_case['y_test'].values.tolist()
+        # y_predicted_series_per_case = predictions_per_case['y_predicted'].values.tolist()
+        #
+        # y_score = f1_score(y_test_series_per_case, y_predicted_series_per_case, average='micro')
+        # print("+ score: ", y_score)
+        #
+        # cases_predicted.append((id_case, y_score, average_entropy, std_entropy))
+
+
+
+    cases_predicted = pd.DataFrame(cases_predicted,
+                            columns=['id_case', 'who_prediction_patient', 'total_slices'])
+
+    print("cases_predicted", type(cases_predicted))
+    print("cases_predicted", cases_predicted)
+
+    metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
+    Utils().mkdir(metrics_folder)
+    cases_predicted.to_csv(os.path.join(metrics_folder, str(model_name +".csv")))
 
 
 
@@ -543,44 +674,8 @@ def run(args):
 
     ## Features selected
     experiment_name = "03_MULTICLASS"
-    # experiment_filename = "cov2radiomics-Tr-FeatureSelection-WHO.csv"
-    experiment_filename = "cov2radiomics-Ts-FeatureSelection-WHO.csv"
-
-    # ## Features selected
-    # experiment_name = "02_GENERAL-FI"
-    # experiment_filename = "3DgeneralclassFF_DT-Tr.csv"
-    # # experiment_filename = "3DGGO-118S-FF-2T-Ts.csv"
-
-
-    # ## Features selected
-    # experiment_name = "02_MULTI"
-    # # experiment_filename = "3DMUL-118S-FF-2T-Tr.csv"
-    # experiment_filename = "3DMUL-118S-FF-2T-Ts.csv"
-
-
-    # ## Features selected
-    # experiment_name = "02_GGO-FI"
-    # # experiment_filename = "3DGGO-118S-FF-2T-Tr.csv"
-    # experiment_filename = "3DGGO-118S-FF-2T-Ts.csv"
-
-
-    # ## Features selected
-    # experiment_name = "02_CON"
-    # # experiment_filename = "3DCON-118S-FF-2T-Tr.csv"
-    # experiment_filename = "3DCON-118S-FF-2T-Ts.csv"
-
-    # ## Features selected
-    # experiment_name = "02_PLE-FI"
-    # # experiment_filename = "3DPLE-118S-FF-2T-Tr.csv"
-    # # experiment_filename = "3DPLE-118S-FF-2T-Ts.csv"
-
-    # ## Features selected
-    # experiment_name = "02_BAN"
-    # experiment_filename = "3DBAN-118S-FF-2T-Tr.csv"
-    # # experiment_filename = "3DBAN-118S-FF-2T-Ts.csv"
-
-
-
+    train_set_filename = "cov2radiomics-Tr-FeatureSelection-WHO.csv"
+    test_set_filename = "cov2radiomics-Ts-FeatureSelection-WHO.csv"
 
     # Select the model to evaluate
     model_name = 'RandomForestClassifier'
@@ -594,20 +689,23 @@ def run(args):
     ## 01 - Train
     # ml_grid_search(testbed, experiment_name, experiment_filename)
 
-    ## 02 - Test
-    model_evaluation(testbed, experiment_name, experiment_filename, model_name)
+    ## 02 - Test at the slice level
+    # model_evaluation(testbed, experiment_name, experiment_filename, model_name)
 
-    # ## 03 -- Alternative
+    ## 03 - Test at the patient level
+    model_evaluation_patients(testbed, experiment_name, test_set_filename, model_name)
+
+    ## 04 -- Alternative
     # xgboostTraining(testbed, experiment_name, experiment_filename)
 
-    ## 03 - Reliability metrics
+    ## 05 - Reliability metrics
     # model_entropy(testbed, experiment_name, experiment_filename, model_name)
 
-    ## 04 - Feature Vsualization
+    ## 06 - Feature Vsualization
     # feature_visualization(testbed, experiment_name, experiment_filename, model_name)
     # plot_radiomic_features(testbed, experiment_name, experiment_filename, model_name)
 
-    ## 05 - Lasso ensemble for explainer
+    ## 07 - Lasso ensemble for explainer
     # shap_explainer(testbed, experiment_name, experiment_filename, model_name)
 
 
