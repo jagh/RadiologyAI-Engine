@@ -585,7 +585,7 @@ def model_evaluation_patients(testbed, experiment_name, test_set_filename, model
     ## Groupby per slices_pred_
     test_num_slices = slices_predicted.groupby(['id_case']).count()
     test_num_slices = test_num_slices.reset_index()
-    print("+ test_num_slices: ", test_num_slices)
+    # print("+ test_num_slices: ", test_num_slices)
 
 
 
@@ -596,11 +596,11 @@ def model_evaluation_patients(testbed, experiment_name, test_set_filename, model
     # cases_predicted = pd.DataFrame()
     cases_predicted = []
     for row in test_num_slices.T.iteritems():
-        print("---"*10)
+        # print("---"*10)
         id_case = row[1][0]
         total_slices = row[1][1]
-        print("+ id_case: ", id_case)
-        print("+ total_slices: ", total_slices)
+        # print("+ id_case: ", id_case)
+        # print("+ total_slices: ", total_slices)
 
         ## Step-1: Collecting slice-wise predictions by case
         predictions_per_case = slices_predicted.loc[lambda df: df['id_case'] == id_case]
@@ -619,14 +619,22 @@ def model_evaluation_patients(testbed, experiment_name, test_set_filename, model
         ## Step-4: Get max votes and get the index of the who class
         max_votes = predictions_per_case_values[:, 1].max(axis=0)
         index_who_score = np.where(predictions_per_case_values[:, 1] == max_votes)
-        print("+ index_who_score: ", index_who_score[0][0])
+        # print("+ index_who_score: ", index_who_score[0][0])
 
         ## Step-5: Get the who score by index
         list_of_predictions = predictions_per_case_values[:, 0].tolist()
         who_prediction_patient = list_of_predictions[index_who_score[0][0]]
-        print("+ list_of_predictions: ", who_prediction_patient)
+        # print("+ list_of_predictions: ", who_prediction_patient)
 
-        cases_predicted.append((id_case, who_prediction_patient, total_slices))
+
+        ## Step-6: Get the GT per case and get the list of predictions per slices
+        GT_per_case = predictions_per_case['y_test'].values
+        # print("+ Predictions_per_case: ", GT_per_case[0])
+
+        list_of_predictios_per_slices = predictions_per_case['y_predicted'].values
+        # print("+ List_of_predictios_per_slices: ", list_of_predictios_per_slices)
+
+        cases_predicted.append((id_case, GT_per_case[0], who_prediction_patient, total_slices, list_of_predictios_per_slices))
 
 
 
@@ -658,10 +666,9 @@ def model_evaluation_patients(testbed, experiment_name, test_set_filename, model
 
 
     cases_predicted = pd.DataFrame(cases_predicted,
-                            columns=['id_case', 'who_prediction_patient', 'total_slices'])
+                            columns=['id_case', 'GT_per_case', 'who_prediction_patient', 'total_slices', 'list_of_predictios_per_slices'])
 
-    print("cases_predicted", type(cases_predicted))
-    print("cases_predicted", cases_predicted)
+    print("+ DataFrame: ", cases_predicted)
 
     metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
     Utils().mkdir(metrics_folder)
