@@ -56,7 +56,6 @@ def load_features_index(file_path):
     print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
     return X_data, y_data, X_index
 
-
 def ml_grid_search(testbed, experiment_name, experiment_filename):
     ## Step-2: ML Training and Grid Search
 
@@ -129,6 +128,10 @@ def ml_grid_search(testbed, experiment_name, experiment_filename):
     mlc.plot_learning_curves(train_scores, valid_scores, n_splits)
 
 
+
+################################################################################
+## Evaluation Functions
+
 from scipy.stats import entropy
 
 def model_evaluation(testbed, experiment_name, experiment_filename, model_name='RandomForestClassifier'):
@@ -200,7 +203,6 @@ def model_evaluation(testbed, experiment_name, experiment_filename, model_name='
         plt.show()
 
     plot_roc(page_clf, X_test, y_test, model_name)
-
 
 
 from sklearn.metrics import f1_score
@@ -399,6 +401,199 @@ def plot_radiomic_features(testbed, experiment_name, experiment_filename, model_
         Charts().plot_heatmap(X_data, visualizaion_folder, fig_name)
 
 
+def model_evaluation_patients(testbed, experiment_name, experiment_filename, model_name='RandomForestClassifier', output_file='PatientLevelTr'):
+    """ Evaluation at the patient level """
+
+    ## General Lesion Full Features
+    radiomics_folder = os.path.join(testbed, experiment_name, "radiomics_features/")
+    features_set_file_path = os.path.join(radiomics_folder, experiment_filename)
+
+    ## Read the dataset for training the model
+    ml_folder = os.path.join(testbed, experiment_name, "machine_learning/")
+    model_path = str(ml_folder+'/models/')
+
+    ## Use oh_flat to encode labels as one-hot for RandomForestClassifier
+    oh_flat = True
+
+
+    ##---------------------------------------------------------------------
+    ## Load dataset
+    X_test, y_test, X_index = load_features_index(features_set_file_path)
+    # print("X_eval: {} || y_eval: {} ".format(str(X_test.shape), str(y_test.shape)))
+
+    ## ML evaluation
+    mlc = MLClassifier()
+    page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
+
+    ## predictions has the format-> {non_intubated: 0.1522, intubated: 0.8477}
+    y_predicted = page_clf.predict(X_test)
+
+    # print("y_test", type(y_test))
+    # print("y_predicted", type(y_predicted))
+    ## y_score = f1_score(y_test, y_predicted, average='macro')
+    y_score = f1_score(y_test, y_predicted, average='micro')
+    print("+ Micro F1-score: ", y_score)
+
+    ## Entropy measument
+    predicted_probs = page_clf.predict_proba(X_test)
+    # print("X_test: ", X_test.shape)
+    # print("y_predicted: ", y_predicted.shape)
+    # print("predicted_probs: ", predicted_probs.shape)
+
+
+    ## Concatenate the id_case and predicted
+    # slices_pred_ = pd.DataFrame((X_index, y_test, y_predicted, predicted_probs[:, 1]))
+    slices_pred_ = pd.DataFrame((X_index, y_test, y_predicted, predicted_probs))
+    slices_predicted = pd.DataFrame(slices_pred_.T.values,
+                        columns=['id_case', 'y_test', 'y_predicted', 'predicted_probs'])
+    # print("+ Slices_predicted: ", slices_predicted)
+
+
+    ## Groupby per slices_pred_
+    test_num_slices = slices_predicted.groupby(['id_case']).count()
+    test_num_slices = test_num_slices.reset_index()
+    # print("+ test_num_slices: ", test_num_slices)
+
+
+
+    ###############################################################################
+    ## Loop between the numbers
+    patient_predicted = []
+    patient_id = []
+    # cases_predicted = pd.DataFrame()
+    cases_predicted = []
+    for row in test_num_slices.T.iteritems():
+        # print("---"*10)
+        id_case = row[1][0]
+        total_slices = row[1][1]
+        # print("+ id_case: ", id_case)
+        # print("+ total_slices: ", total_slices)
+
+        ## Step-1: Collecting slice-wise predictions by case
+        predictions_per_case = slices_predicted.loc[lambda df: df['id_case'] == id_case]
+        # print('+ Predictions per case: ', predictions_per_case['y_predicted'].shape)
+
+        ## Step-2: Grouping and counting the predictions by each who class
+        predictions_per_case_groupby = predictions_per_case.groupby(['y_predicted']).count()
+        # print('+ Groupby Predictions per slice: ', predictions_per_case_groupby)
+
+        ## Step-3: Parsing the who-class-wise count
+        predictions_per_case_groupby.reset_index(inplace=True)
+        predictions_per_case_values = predictions_per_case_groupby.values
+        # print("+ predictions_per_case_values: ", type(predictions_per_case_values))
+        # print("+ predictions_per_case_values: ", predictions_per_case_values[:, 1])
+
+        ## Step-4: Get max votes and get the index of the who class
+        max_votes = predictions_per_case_values[:, 1].max(axis=0)
+        index_who_score = np.where(predictions_per_case_values[:, 1] == max_votes)
+        # print("+ index_who_score: ", index_who_score[0][0])
+
+        ##########################################################
+        ## Step-5: Get the majority voting of who score by index
+        list_of_predictions = predictions_per_case_values[:, 0].tolist()
+        majority_voting_prediction = list_of_predictions[index_who_score[0][0]]
+        # print("+ list_of_predictions: ", who_prediction_patient)
+
+
+        ##########################################################
+        ## Step-1: Get the mean voting of who score
+        mean_voting_prediction = np.average(predictions_per_case['y_predicted'].values)
+        # print("+ list_of_predictions: ", predictions_per_case['y_predicted'].values)
+        # print("+ mean_voting_prediction: ", mean_voting_prediction)
+
+
+        ##########################################################
+        ## Step-1: Get the GT per case and get the list of predictions per slices
+        GT_per_case = predictions_per_case['y_test'].values
+        # print("+ Predictions_per_case: ", GT_per_case[0])
+
+        ## Step-2: Get the additional information
+        list_of_predictions_per_slices = predictions_per_case['y_predicted'].values
+        # print("+ List_of_predictios_per_slices: ", list_of_predictios_per_slices)
+
+
+
+        cases_predicted.append((id_case, GT_per_case[0], majority_voting_prediction, mean_voting_prediction ,total_slices, list_of_predictions_per_slices))
+
+
+
+
+    cases_predicted = pd.DataFrame(cases_predicted,
+                            columns=['id_case', 'GT_per_case', 'majority_voting_prediction', 'mean_voting_prediction', 'total_slices', 'list_of_predictions_per_slices'])
+
+
+    # print("+ DataFrame: ", cases_predicted)
+    print(cases_predicted)
+
+    metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
+    Utils().mkdir(metrics_folder)
+    cases_predicted.to_csv(os.path.join(metrics_folder, str(model_name+"-"+output_file+"-sample.csv")))
+
+
+    ##########################################
+    ## Compute confusion matrix
+    from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+    import matplotlib.pyplot as plt
+
+    ## Step-1: Set labels
+    labels_name = ['3', '4', '5', '6', '8', '9']
+
+    ##########################################
+    ## Step-2.1: Compute the F1-score per patient
+    majority_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
+                                    cases_predicted['majority_voting_prediction'].values,
+                                    average='micro'), decimals=3)
+    print("+ majority_voting_F1score: ", majority_voting_F1score)
+
+    ## Step-2.2: Compute the confusion matrix by majority_voting_prediction
+    majority_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
+                                            y_pred=cases_predicted['majority_voting_prediction'].values,
+                                            # labels=labels_name,
+                                            )
+    # print("+ CM by majority_voting_prediction: ", majority_voting_CM)
+
+    ## Step-2.3: Display the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=majority_voting_CM,
+                                    display_labels=labels_name,
+                                    )
+    disp.plot()
+    plt.title(str(model_name+" || F1-score: "+ str(majority_voting_F1score)))
+    plt.show()
+
+
+
+
+    ##########################################
+    ## Step-2: Compute the confusion matrix by mean_voting_prediction
+    labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
+
+    ## Step-1: Compute the F1-score per patient
+    mean_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
+                                    cases_predicted['mean_voting_prediction'].values,
+                                    average='micro'), decimals=3)
+    print("+ majority_voting_F1score: ", majority_voting_F1score)
+
+    mean_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
+                                            y_pred=cases_predicted['mean_voting_prediction'].values,
+                                            # labels=labels_name,
+                                            )
+    # print("+ CM by mean_voting_prediction: ", mean_voting_CM)
+
+    ## Step-2.1: Display the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=mean_voting_CM,
+                                    display_labels=labels_name_2,
+                                    )
+    disp.plot()
+    plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
+    plt.show()
+
+
+
+
+
+################################################################################
+## XGBoost Classifier Functions
+
 import pickle
 import xgboost as xgb
 
@@ -530,197 +725,6 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
                                     ) #, xticks_rotation=15)
         plt.title(str(" XGBoost || F1-score: "+ str(test_score)))
         plt.show()
-
-
-
-def model_evaluation_patients(testbed, experiment_name, test_set_filename, model_name='RandomForestClassifier'):
-    """ Evaluation at the patient level """
-
-    ## General Lesion Full Features
-    radiomics_folder = os.path.join(testbed, experiment_name, "radiomics_features/")
-    test_lesion_features_file_path = os.path.join(radiomics_folder, test_set_filename)
-
-    ## Read the dataset for training the model
-    ml_folder = os.path.join(testbed, experiment_name, "machine_learning/")
-    model_path = str(ml_folder+'/models/')
-
-    ## Use oh_flat to encode labels as one-hot for RandomForestClassifier
-    oh_flat = True
-
-
-    ##---------------------------------------------------------------------
-    ## Load dataset
-    X_test, y_test, X_index = load_features_index(test_lesion_features_file_path)
-    # print("X_eval: {} || y_eval: {} ".format(str(X_test.shape), str(y_test.shape)))
-
-    ## ML evaluation
-    mlc = MLClassifier()
-    page_clf, test_score = mlc.model_evaluation(model_path, model_name, X_test, y_test, oh_flat)
-
-    ## predictions has the format-> {non_intubated: 0.1522, intubated: 0.8477}
-    y_predicted = page_clf.predict(X_test)
-
-    # print("y_test", type(y_test))
-    # print("y_predicted", type(y_predicted))
-    ## y_score = f1_score(y_test, y_predicted, average='macro')
-    y_score = f1_score(y_test, y_predicted, average='micro')
-    print("+ Micro F1-score: ", y_score)
-
-    ## Entropy measument
-    predicted_probs = page_clf.predict_proba(X_test)
-    # print("X_test: ", X_test.shape)
-    # print("y_predicted: ", y_predicted.shape)
-    # print("predicted_probs: ", predicted_probs.shape)
-
-
-    ## Concatenate the id_case and predicted
-    # slices_pred_ = pd.DataFrame((X_index, y_test, y_predicted, predicted_probs[:, 1]))
-    slices_pred_ = pd.DataFrame((X_index, y_test, y_predicted, predicted_probs))
-    slices_predicted = pd.DataFrame(slices_pred_.T.values,
-                        columns=['id_case', 'y_test', 'y_predicted', 'predicted_probs'])
-    # print("+ Slices_predicted: ", slices_predicted)
-
-
-    ## Groupby per slices_pred_
-    test_num_slices = slices_predicted.groupby(['id_case']).count()
-    test_num_slices = test_num_slices.reset_index()
-    # print("+ test_num_slices: ", test_num_slices)
-
-
-
-    ###############################################################################
-    ## Loop between the numbers
-    patient_predicted = []
-    patient_id = []
-    # cases_predicted = pd.DataFrame()
-    cases_predicted = []
-    for row in test_num_slices.T.iteritems():
-        # print("---"*10)
-        id_case = row[1][0]
-        total_slices = row[1][1]
-        # print("+ id_case: ", id_case)
-        # print("+ total_slices: ", total_slices)
-
-        ## Step-1: Collecting slice-wise predictions by case
-        predictions_per_case = slices_predicted.loc[lambda df: df['id_case'] == id_case]
-        # print('+ Predictions per case: ', predictions_per_case['y_predicted'].shape)
-
-        ## Step-2: Grouping and counting the predictions by each who class
-        predictions_per_case_groupby = predictions_per_case.groupby(['y_predicted']).count()
-        # print('+ Groupby Predictions per slice: ', predictions_per_case_groupby)
-
-        ## Step-3: Parsing the who-class-wise count
-        predictions_per_case_groupby.reset_index(inplace=True)
-        predictions_per_case_values = predictions_per_case_groupby.values
-        # print("+ predictions_per_case_values: ", type(predictions_per_case_values))
-        # print("+ predictions_per_case_values: ", predictions_per_case_values[:, 1])
-
-        ## Step-4: Get max votes and get the index of the who class
-        max_votes = predictions_per_case_values[:, 1].max(axis=0)
-        index_who_score = np.where(predictions_per_case_values[:, 1] == max_votes)
-        # print("+ index_who_score: ", index_who_score[0][0])
-
-        ##########################################################
-        ## Step-5: Get the majority voting of who score by index
-        list_of_predictions = predictions_per_case_values[:, 0].tolist()
-        majority_voting_prediction = list_of_predictions[index_who_score[0][0]]
-        # print("+ list_of_predictions: ", who_prediction_patient)
-
-
-        ##########################################################
-        ## Step-1: Get the mean voting of who score
-        mean_voting_prediction = np.average(predictions_per_case['y_predicted'].values)
-        # print("+ list_of_predictions: ", predictions_per_case['y_predicted'].values)
-        # print("+ mean_voting_prediction: ", mean_voting_prediction)
-
-
-        ##########################################################
-        ## Step-1: Get the GT per case and get the list of predictions per slices
-        GT_per_case = predictions_per_case['y_test'].values
-        # print("+ Predictions_per_case: ", GT_per_case[0])
-
-        ## Step-2: Get the additional information
-        list_of_predictions_per_slices = predictions_per_case['y_predicted'].values
-        # print("+ List_of_predictios_per_slices: ", list_of_predictios_per_slices)
-
-
-
-        cases_predicted.append((id_case, GT_per_case[0], majority_voting_prediction, mean_voting_prediction ,total_slices, list_of_predictions_per_slices))
-
-
-
-
-    cases_predicted = pd.DataFrame(cases_predicted,
-                            columns=['id_case', 'GT_per_case', 'majority_voting_prediction', 'mean_voting_prediction', 'total_slices', 'list_of_predictions_per_slices'])
-
-
-    # print("+ DataFrame: ", cases_predicted)
-    print(cases_predicted)
-
-    metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
-    Utils().mkdir(metrics_folder)
-    cases_predicted.to_csv(os.path.join(metrics_folder, str(model_name +"-PatientLevelTs.csv")))
-
-
-    ##########################################
-    ## Compute confusion matrix
-    from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-    import matplotlib.pyplot as plt
-
-    ## Step-1: Set labels
-    labels_name = ['3', '4', '5', '6', '8', '9']
-
-    ##########################################
-    ## Step-2.1: Compute the F1-score per patient
-    majority_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
-                                    cases_predicted['majority_voting_prediction'].values,
-                                    average='micro'), decimals=3)
-    print("+ majority_voting_F1score: ", majority_voting_F1score)
-
-    ## Step-2.2: Compute the confusion matrix by majority_voting_prediction
-    majority_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
-                                            y_pred=cases_predicted['majority_voting_prediction'].values,
-                                            # labels=labels_name,
-                                            )
-    # print("+ CM by majority_voting_prediction: ", majority_voting_CM)
-
-    ## Step-2.3: Display the confusion matrix
-    disp = ConfusionMatrixDisplay(confusion_matrix=majority_voting_CM,
-                                    display_labels=labels_name,
-                                    )
-    disp.plot()
-    plt.title(str(model_name+" || F1-score: "+ str(majority_voting_F1score)))
-    plt.show()
-
-
-
-
-    ##########################################
-    ## Step-2: Compute the confusion matrix by mean_voting_prediction
-    labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
-
-    ## Step-1: Compute the F1-score per patient
-    mean_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
-                                    cases_predicted['mean_voting_prediction'].values,
-                                    average='micro'), decimals=3)
-    print("+ majority_voting_F1score: ", majority_voting_F1score)
-
-    mean_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
-                                            y_pred=cases_predicted['mean_voting_prediction'].values,
-                                            # labels=labels_name,
-                                            )
-    # print("+ CM by mean_voting_prediction: ", mean_voting_CM)
-
-    ## Step-2.1: Display the confusion matrix
-    disp = ConfusionMatrixDisplay(confusion_matrix=mean_voting_CM,
-                                    display_labels=labels_name_2,
-                                    )
-    disp.plot()
-    plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
-    plt.show()
-
-
-
 
 def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_filename):
     ## Step-2: ML Training and Grid Search
@@ -982,10 +986,6 @@ def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_file
         plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
         plt.show()
 
-
-
-
-
 def model_evaluation_slicesTr(testbed, experiment_name, test_set_filename, model_name='RandomForestClassifier'):
     """ Evaluation at the patient level """
 
@@ -1041,6 +1041,7 @@ def model_evaluation_slicesTr(testbed, experiment_name, test_set_filename, model
 
 
 
+
 def run(args):
     testbed = "testbed-WHO-20220325/"
 
@@ -1065,16 +1066,19 @@ def run(args):
     # model_evaluation(testbed, experiment_name, experiment_filename, model_name)
 
     ## 03 - Test at the patient level
-    # model_evaluation_patients(testbed, experiment_name, test_set_filename, model_name)
+    # model_evaluation_patients(testbed, experiment_name, test_set_filename,
+    #                             model_name, output_file='PatientLevelTs')
 
     ## 03.1 - Train
     # model_evaluation_slicesTr(testbed, experiment_name, train_set_filename, model_name)
+
+    model_evaluation_patients(testbed, experiment_name, train_set_filename, model_name, output_file='PatientLevelTr')
 
     ## 04 -- Alternative
     # xgboostTraining(testbed, experiment_name, experiment_filename)
 
     ## 04.1
-    xgboostTraining_evaluationPatients(testbed, experiment_name, train_set_filename)
+    # xgboostTraining_evaluationPatients(testbed, experiment_name, train_set_filename)
 
     ## 05 - Reliability metrics
     # model_entropy(testbed, experiment_name, experiment_filename, model_name)
