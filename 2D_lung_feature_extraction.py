@@ -67,6 +67,7 @@ def folder_3D_label_overlap(seg_folder, sandbox, label_name="SNF_lung", output_f
         nii_file_path = os.path.join(new_label_folder, str(file_name))
         nib.save(new_label_nifti, nii_file_path)
 
+
 def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox', split='train', task='SNF-lung'):
     """
     Function to slicing the lung segmentation from GT index.
@@ -95,11 +96,23 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
     for row in range(metadata.shape[0]):
 
         ## Locating the CTs files
-        ct_file_path = os.path.join(cts_folder, metadata['ct_file_name'][row])
+        if str(metadata['center'][row]) == 'YALE':
+            ct_file_name = str(metadata['id_case'][row] + "_HYK.nii.gz")
+            ct_file_path = os.path.join(cts_folder, ct_file_name)
+        else:
+            ct_file_path = os.path.join(cts_folder, metadata['ct_file_name'][row])
+
+        print("+ ct_file_path: ", ct_file_path)
+
 
         ## Locating the segmentation files
-        seg_file_name = str(metadata['id_case'][row] + "_SK-" + task + ".nii.gz")
-        seg_file_path = os.path.join(seg_folder, seg_file_name)
+        if str(metadata['center'][row]) == 'YALE':
+            seg_file_name = str(metadata['id_case'][row] + "_HYK-" + task + ".nii.gz")
+            seg_file_path = os.path.join(seg_folder, seg_file_name)
+        else:
+            seg_file_name = str(metadata['id_case'][row] + "_SK-" + task + ".nii.gz")
+            seg_file_path = os.path.join(seg_folder, seg_file_name)
+            # pass
 
 
         ## Fix the position of the slice and check for lesion
@@ -124,22 +137,25 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
 
 
 
-
 def run(args):
     """
     Run the pipeline to extract the pyradiomics features from lung segmentations
     """
 
     # folder_3D_label_overlap(args.seg_folder, args.sandbox, label_name="SNF-lung", output_folder="00_GT_Lung_Seg")
-    extract_slices_dataframe(args.cts_folder, args.seg_folder, args.dataframe, args.sandbox, "train", args.task)
+    # extract_slices_dataframe(args.cts_folder, args.relabel_seg_folder, args.dataframe, args.sandbox, "train", args.task)
+    extract_slices_dataframe(args.cts_folder, args.relabel_seg_folder, args.dataframe, args.sandbox, "test", args.task)
 
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/01_Nifti_Data/')
-    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/00_GT_Lung_Seg/')
-    parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419.csv')
+    # parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/02_GT_Bilung_Seg/')
+    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/99_Temp_Lungs')
+    parser.add_argument('-rseg', '--relabel_seg_folder', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/00_GT_Lung_Seg/')
+    # parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419.csv')
+    parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419-Missing.csv')
     parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/')
     parser.add_argument('-t', '--task', default='SNF-lung')
     # parser.add_argument('-t', '--task', default='snf-lesion')
