@@ -51,11 +51,11 @@ def main():
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default='/data/01_UB/01_Multiomics-Data/Clinical_Imaging/03_Step-3_CasesSegmented/Parma/01_Dicom_Sources/')
-    parser.add_argument('-o', '--output', default='//data/01_UB/01_Multiomics-Data/Clinical_Imaging/03_Step-3_CasesSegmented/Parma/03_Nifti_Segmentation/')
+    parser.add_argument('-i', '--input', default='/data/01_UB/01_Multiomics-Data/Clinical_Imaging/05_Step-4_CasesSourcesYale/01_Dicom_Sources')
+    parser.add_argument('-nii', '--nii_folder', default='/data/01_UB/01_Multiomics-Data/Clinical_Imaging/05_Step-4_CasesSourcesYale//02_Nifti_Data')
+    parser.add_argument('-o', '--output', default='//data/01_UB/01_Multiomics-Data/Clinical_Imaging/05_Step-4_CasesSourcesYale/03_Nifti_Vienna_LungSegmentation')
     parser.add_argument('-s', '--seg_method', type=str, default='bi-lung')
     parser.add_argument('-b', '--batch', type=int, default=5)
-    parser.add_argument('-nii', '--nii_folder', default='/data/01_UB/01_Multiomics-Data/Clinical_Imaging/03_Step-3_CasesSegmented/Parma/02_Nifti_Data')
 
     args = parser.parse_args()
     run(args)
