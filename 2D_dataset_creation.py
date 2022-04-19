@@ -29,10 +29,80 @@ import SimpleITK as sitk
 
 import pandas as pd
 import numpy as np
+import csv
 
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
 
+def open_and_write_slices(patient_folder, slices_index_file, borders_index_file):
+    """"""
+    ## Get folder name
+    folder_name = patient_folder.split(os.path.sep)[-1]
+    # print("+ folder_name: ", folder_name)
+
+    ## Get xlsx file and read excel file
+    xlsx_file = glob.glob(patient_folder + "/*.xlsx")[0]
+    df = pd.read_excel(xlsx_file, engine='openpyxl', index_col=None, header=None)
+
+    ## Set CT name the same as folder name
+    ct_name = folder_name
+
+    ## Transpose the dataframe and iterate between the rows
+    transpose_df = df.T
+    for row in transpose_df.iteritems():
+
+        if row[0] == 2:
+            ## Initialize the list
+            lung_borders_index_list = []
+            ## List append values to build a row
+            lung_borders_index_list.append(ct_name)
+            lung_borders_index_list.append(row[1][2])
+            lung_borders_index_list.append(row[1][3])
+            ## write each row in the lung borders file
+            csvw = csv.writer(borders_index_file)
+            csvw.writerow(lung_borders_index_list)
+            # print("lung_borders_index_list: ", lung_borders_index_list)
+        elif row[0] < 7:
+            pass
+        elif row[0] < 17:
+            ## Initialize the list
+            axial_slices_index_list = []
+            ## List append values to build a row
+            axial_slices_index_list.append(ct_name)
+            axial_slices_index_list.append(row[1][3])
+            ## write each row in the axial slices file
+            csvw = csv.writer(slices_index_file)
+            csvw.writerow(axial_slices_index_list)
+            # print("axial_slices_index_list: ", axial_slices_index_list)
+        else:
+            break
+
+def extract_slices_index():
+    """ Function to extract the axial slices index by CT """
+    center = "PARMA"    #"YALE"     #"PARMA"    #"BERN"
+
+    ## Set file names and open them
+    slices_indes_filename = os.path.join("testbed", str(center+"-axial_slices_index_list.csv"))
+    slices_index_file = open(slices_indes_filename, 'w+')
+
+    borders_index_filename = os.path.join("testbed", str(center+"-lung_borders_index_list.csv"))
+    borders_index_file = open(borders_index_filename, 'w+')
+
+    if center == "BERN":
+        cts_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Bern_Cases_8class"
+    elif center == "PARMA":
+        cts_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Parma_Cases_8class"
+    elif center == "YALE":
+        cts_folder = "/data/01_UB/Multiomics-Data/Clinical_Imaging/06_full-Segmente_Cases_Part-I/Yale_Cases_8class"
+    else:
+        print("+ center not found!")
+
+    global_folder = glob.glob(cts_folder + "/*")
+
+    ## Iterate between axial slices
+    for patient_folder in global_folder[:]:
+        print("+ patient_folder: ", patient_folder)
+        open_and_write_slices(patient_folder, slices_index_file, borders_index_file)
 
 def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train', task='bi-lung'):
     """
@@ -190,9 +260,10 @@ def run(args):
     :param seg_folder: Path to the folder containing the segmentations
     :param sandbox: Path to the sandbox where intermediate results are stored
     """
-    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
-    convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
-    generate_json(args.sandbox)
+    extract_slices_index()
+    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "train")
+    # convert_images(args.dataframe, args.cts_folder, args.seg_folder, args.sandbox, "test")
+    # generate_json(args.sandbox)
 
 
 def main():

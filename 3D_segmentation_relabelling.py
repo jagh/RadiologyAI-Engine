@@ -39,6 +39,7 @@ def folder_relabel_segmentations(input_folder, sandbox):
         nii_file_path = os.path.join(relabel_folder, str(file_name))
         nib.save(relabel_lesion_nifti, nii_file_path)
 
+
 def folder_3D_label_overlap(input_folder, sandbox, label_name="SNF_General"):
     """
     This function takes in a folder of nifti files and relabels the lesion segmentation with a new label name,
@@ -56,7 +57,7 @@ def folder_3D_label_overlap(input_folder, sandbox, label_name="SNF_General"):
 
     ip = SegProcessing()
     for input_path in input_folder:
-        new_label_nifti = ip.label_overlap(input_path, sequenceOn = [4], sequenceOff = [0, 1, 2, 3, 5])
+        new_label_nifti = ip.label_overlap(input_path, sequenceOn = [1, 2, 3, 4], sequenceOff = [0, 5])
         print("+ input_path: ", input_path)
 
         ## Get file name, build and write the file name
@@ -77,16 +78,16 @@ def folder_3D_label_overlap(input_folder, sandbox, label_name="SNF_General"):
 
 def run(args):
     input_folder = glob.glob(args.input + "/*")
-    # folder_relabel_segmentations(input_folder, args.sandbox)
-
+    #folder_relabel_segmentations(input_folder, args.sandbox)
+    
     folder_3D_label_overlap(input_folder, args.sandbox, args.label_name)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/04_included_cases_FP/00_DNN_LesionSeg/')
-    parser.add_argument('-s', '--sandbox', default='/data/01_UB/Multiomics-Data/Clinical_Imaging/04_included_cases_FP/sandbox-BAN/')
-    parser.add_argument('-n', '--label_name', default="SNF_BAN")
+    parser.add_argument('-i', '--input', default='/data/03_MICCAI/sandbox-G1/3D_labels/')
+    parser.add_argument('-s', '--sandbox', default='/data/03_MICCAI/sandbox-G1/sandbox-General/')
+    parser.add_argument('-n', '--label_name', default="SNF_General")
 
     args = parser.parse_args()
     run(args)
