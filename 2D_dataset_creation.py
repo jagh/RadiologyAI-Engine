@@ -77,11 +77,8 @@ def open_and_write_slices(patient_folder, slices_index_file, borders_index_file)
         else:
             break
 
-
-
 def extract_slices_index():
     """ Function to extract the axial slices index by CT """
-
     center = "PARMA"    #"YALE"     #"PARMA"    #"BERN"
 
     ## Set file names and open them
@@ -106,10 +103,6 @@ def extract_slices_index():
     for patient_folder in global_folder[:]:
         print("+ patient_folder: ", patient_folder)
         open_and_write_slices(patient_folder, slices_index_file, borders_index_file)
-
-
-
-
 
 def convert_images(dataframe, cts_folder, seg_folder, sandbox='sandbox', split='train', task='bi-lung'):
     """
