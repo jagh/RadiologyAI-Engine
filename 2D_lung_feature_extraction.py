@@ -1,5 +1,5 @@
 """
-Class to extract the pyradiomics features from lung segmentations:
+Pipeline launcher to extract the pyradiomics features from lung segmentations:
 
     1. Function to overlay the lung segmentation clases.
     2. Function to slicing the lung segmentation from GT index.
@@ -25,13 +25,49 @@ import csv
 
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
-from engine.segmentations import LungSegmentations
+from engine.preprocessing import SegProcessing
+# from engine.segmentations import LungSegmentations
 
 
 
+def folder_3D_label_overlap(seg_folder, sandbox, label_name="SNF_lung", output_folder="00_GT_Lung_Seg"):
+    """
+    This function takes in a folder of nifti files and relabels the lesion segmentation with a new label name,
+    changing the label values according to the sequence.
 
+        :param input_folder: A folder of nifti files
+        :type input_folder: str
 
-def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox', split='train', task='bilung'):
+        :param label_name: The new label name
+        :type label_name: str
+
+        :return: A folder of relabeled nifti files
+        :rtype: str
+    """
+
+    input_folder = glob.glob(seg_folder + "/*")
+
+    ip = SegProcessing()
+    for input_path in input_folder:
+
+        print("+ input_path: ", input_path)
+        new_label_nifti = ip.label_overlap(input_path, sequenceOn = [1, 2], sequenceOff = [0])
+
+        ## Get file name, build and write the file name
+        file_name = input_path.split(os.path.sep)[-1]
+
+        ## Renaming the new files
+        file_name, _ = file_name.split("-bilung")
+        file_name = str(file_name + "-" + label_name + ".nii.gz")
+        # print("+ file_name:", file_name)
+
+        new_label_folder = os.path.join(sandbox, output_folder)
+        Utils().mkdir(new_label_folder)
+
+        nii_file_path = os.path.join(new_label_folder, str(file_name))
+        nib.save(new_label_nifti, nii_file_path)
+
+def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox', split='train', task='SNF-lung'):
     """
     Function to slicing the lung segmentation from GT index.
     """
@@ -41,12 +77,12 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
     ## Using separate folder for training and test
     if split == 'test':
         metadata = metadata_full.query('split == "test"')
-        axial_slices_folder = os.path.join(sandbox, str("imagesTs"))
-        axial_labels_folder = os.path.join(sandbox, str("labelsTs"))
+        axial_slices_folder = os.path.join(sandbox, task, str("imagesTs"))
+        axial_labels_folder = os.path.join(sandbox, task, str("labelsTs"))
     else:
         metadata = metadata_full.query('split == "train"')
-        axial_slices_folder = os.path.join(sandbox, str("imagesTr"))
-        axial_labels_folder = os.path.join(sandbox, str("labelsTr"))
+        axial_slices_folder = os.path.join(sandbox, task, str("imagesTr"))
+        axial_labels_folder = os.path.join(sandbox, task, str("labelsTr"))
 
     metadata = metadata.reset_index(drop=True)
     print("++ Metadata {}: {}".format(split, metadata.shape))
@@ -58,15 +94,13 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
     ## Iterate between axial slices
     for row in range(metadata.shape[0]):
 
-        ## Locating the CTs and labels
+        ## Locating the CTs files
         ct_file_path = os.path.join(cts_folder, metadata['ct_file_name'][row])
 
+        ## Locating the segmentation files
+        seg_file_name = str(metadata['id_case'][row] + "_SK-" + task + ".nii.gz")
+        seg_file_path = os.path.join(seg_folder, seg_file_name)
 
-        if task == 'bilung':
-            seg_file_name = str(metadata['id_case'][row] + "_SK-" + task + ".nii.gz")
-            seg_file_path = os.path.join(seg_folder, seg_file_name)
-        else:
-            pass
 
         ## Fix the position of the slice and check for lesion
         axial_index = metadata['slice_position'][row]
@@ -78,7 +112,7 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
 
         ## Set the file name for each axial slice and add the mode _0000 for SK
         ct_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '_0000.nii.gz'
-        seg_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '.nii.gz'
+        seg_slice_name = str(metadata['id_case'][row]) + '-' + str(axial_index) + '-GT_'+ task +'.nii.gz'
 
         # ## nibabel -> Write axial slices to a Nifti file for each axial slice
         # nib.save(ct_nifti, os.path.join(axial_slices_folder, ct_slice_name))
@@ -96,7 +130,7 @@ def run(args):
     Run the pipeline to extract the pyradiomics features from lung segmentations
     """
 
-    # DEV_slice_extraction(args.cts_folder, args.sandbox, args.task)
+    # folder_3D_label_overlap(args.seg_folder, args.sandbox, label_name="SNF-lung", output_folder="00_GT_Lung_Seg")
     extract_slices_dataframe(args.cts_folder, args.seg_folder, args.dataframe, args.sandbox, "train", args.task)
 
 
@@ -104,10 +138,10 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/01_Nifti_Data/')
-    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/02_GT_Lung_Seg')
+    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/00_GT_Lung_Seg/')
     parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419.csv')
     parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/')
-    parser.add_argument('-t', '--task', default='bilung')
+    parser.add_argument('-t', '--task', default='SNF-lung')
     # parser.add_argument('-t', '--task', default='snf-lesion')
 
     args = parser.parse_args()
