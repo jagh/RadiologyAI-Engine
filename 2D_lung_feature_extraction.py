@@ -26,8 +26,9 @@ import csv
 from engine.utils import Utils
 from engine.preprocessing import ImageProcessing
 from engine.preprocessing import SegProcessing
-# from engine.segmentations import LungSegmentations
+from engine.featureextractor import RadiomicsExtractor
 
+from radiomics import base, cShape, deprecated
 
 
 def folder_3D_label_overlap(seg_folder, sandbox, label_name="SNF_lung", output_folder="00_GT_Lung_Seg"):
@@ -136,26 +137,184 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
         sitk.WriteImage(seg_nifti, os.path.join(axial_labels_folder, seg_slice_name))
 
 
+def pyRadiomics_feature_extraction(dataframe,
+                                    sandbox,
+                                    task='SNF-lung',
+                                    split="test",
+                                    testbed_name="testbed-FirstPaper",
+                                    radiomics_set="bb"):
+    """ Parallel pyradiomics feature extraction """
+
+    metadata_full = pd.read_csv(dataframe, sep=',')
+
+    ## Using separate folder for training and test
+    if split == 'test':
+        metadata = metadata_full.query('split == "test"')
+        axial_slices_folder = os.path.join(sandbox, task, str("imagesTs"))
+        axial_labels_folder = os.path.join(sandbox, task, str("labelsTs"))
+    else:
+        metadata = metadata_full.query('split == "train"')
+        axial_slices_folder = os.path.join(sandbox, task, str("imagesTr"))
+        axial_labels_folder = os.path.join(sandbox, task, str("labelsTr"))
+
+    metadata = metadata.reset_index(drop=True)
+    print("++ Metadata {}: {}".format(split, metadata.shape))
+
+
+    ## Flag to write the header of each file
+    write_header = False
+
+    ## Crete new folder for feature extraction
+    radiomics_folder = os.path.join(sandbox, "testbed", testbed_name, "00_radiomics_features")
+    Utils().mkdir(radiomics_folder)
+
+
+    ## Set file name to write a features vector per case
+    filename = str(radiomics_folder+"/00_lesion_features-"+ radiomics_set +".csv")
+    features_file = open(filename, 'w+')
+
+    ## Iterate between axial slices
+    for row in range(metadata.shape[0]):
+
+        ## Locating the CTs files
+        ct_file_name = str(metadata['id_case'][row] + "-" + str(metadata['slice_position'][row]) + "_0000.nii.gz")
+        ct_file_path = os.path.join(axial_slices_folder, ct_file_name)
+        print("+ ct_file_path: ", ct_file_path)
+
+
+        ## Locating the segmentation files
+        seg_file_name = str(metadata['id_case'][row] + "-" + str(metadata['slice_position'][row]) + "-GT_SNF-lung.nii.gz")
+        seg_file_path = os.path.join(axial_labels_folder, seg_file_name)
+        print("+ seg_file_path: ", seg_file_path)
+
+        ## Extracting pyradiomics features
+        re = RadiomicsExtractor(1)
+        feature_extraction_list, image_header_list = re.parallel_extractor(ct_file_path,
+                                                                            seg_file_path,
+                                                                            str(metadata['id_case'][row] + "-" + str(metadata['slice_position'][row])),
+                                                                            metadata['who_label_56-cases'][row],
+                                                                            radiomics_set)
+        ## writing features by image
+        csvw = csv.writer(features_file)
+        if write_header == False:
+            csvw.writerow(image_header_list)
+            write_header = True
+        csvw.writerow(feature_extraction_list)
+
+    write_header = False
+
+
+
+def pyRadiomics_feature_extraction_Manual(dataframe,
+                                    sandbox,
+                                    task='SNF-lung',
+                                    split="test",
+                                    testbed_name="testbed-FirstPaper",
+                                    radiomics_set="bb"):
+    """ Parallel pyradiomics feature extraction """
+
+    metadata_full = pd.read_csv(dataframe, sep=',')
+
+    ## Using separate folder for training and test
+    if split == 'test':
+        metadata = metadata_full.query('split == "test"')
+        axial_slices_folder = os.path.join(sandbox, task, str("imagesTs"))
+        axial_labels_folder = os.path.join(sandbox, task, str("labelsTs"))
+    else:
+        metadata = metadata_full.query('split == "train"')
+        axial_slices_folder = os.path.join(sandbox, task, str("imagesTr"))
+        axial_labels_folder = os.path.join(sandbox, task, str("labelsTr"))
+
+    metadata = metadata.reset_index(drop=True)
+    print("++ Metadata {}: {}".format(split, metadata.shape))
+
+
+    ## Flag to write the header of each file
+    write_header = False
+
+    ## Crete new folder for feature extraction
+    radiomics_folder = os.path.join(sandbox, "testbed", testbed_name, "00_radiomics_features")
+    Utils().mkdir(radiomics_folder)
+
+
+    ## Set file name to write a features vector per case
+    filename = str(radiomics_folder+"/00_lesion_features-"+ radiomics_set +".csv")
+    features_file = open(filename, 'w+')
+
+    ## Iterate between axial slices
+    for row in range(metadata.shape[0]):
+
+        ## Locating the CTs files
+        ct_file_name = str(metadata['id_case'][row] + "-" + str(metadata['slice_position'][row]) + "_0000.nii.gz")
+        ct_file_path = os.path.join(axial_slices_folder, ct_file_name)
+        print("+ ct_file_path: ", ct_file_path)
+
+
+        ## Locating the segmentation files
+        seg_file_name = str(metadata['id_case'][row] + "-" + str(metadata['slice_position'][row]) + "-GT_SNF-lung.nii.gz")
+        seg_file_path = os.path.join(axial_labels_folder, seg_file_name)
+        print("+ seg_file_path: ", seg_file_path)
+
+        ## Extracting pyradiomics features
+        re = RadiomicsExtractor(1)
+        feature_extraction_list, image_header_list = re.parallel_extractor(ct_file_path,
+                                                                            seg_file_path,
+                                                                            str(metadata['id_case'][row] + "-" + str(metadata['slice_position'][row])),
+                                                                            metadata['who_label_56-cases'][row],
+                                                                            radiomics_set)
+        ## writing features by image
+        csvw = csv.writer(features_file)
+        if write_header == False:
+            csvw.writerow(image_header_list)
+            write_header = True
+        csvw.writerow(feature_extraction_list)
+
+    write_header = False
+
 
 def run(args):
     """
     Run the pipeline to extract the pyradiomics features from lung segmentations
     """
 
+    ## Step-1: Overlay the lung segmentation clases.
     # folder_3D_label_overlap(args.seg_folder, args.sandbox, label_name="SNF-lung", output_folder="00_GT_Lung_Seg")
-    # extract_slices_dataframe(args.cts_folder, args.relabel_seg_folder, args.dataframe, args.sandbox, "train", args.task)
-    extract_slices_dataframe(args.cts_folder, args.relabel_seg_folder, args.dataframe, args.sandbox, "test", args.task)
+
+    ## Step-2: Slicing the lung segmentation from GT index.
+    ## Train
+    # extract_slices_dataframe(args.cts_folder,
+    #                             args.relabel_seg_folder,
+    #                             args.dataframe,
+    #                             args.sandbox,
+    #                             split="train",
+    #                             args.task)
+
+    ## Test
+    # extract_slices_dataframe(args.cts_folder,
+    #                             args.relabel_seg_folder,
+    #                             args.dataframe,
+    #                             args.sandbox,
+    #                             split="test",
+    #                             args.task)
+
+    ## Step-3: Extract features per segmentation layer between all cases
+    # pyRadiomics_feature_extraction(args.dataframe,
+    #                                 args.sandbox,
+    #                                 args.task,
+    #                                 split="test",
+    #                                 testbed_name=args.task,
+    #                                 radiomics_set="bb")
+
+    pyRadiomics_feature_extraction_Manual()
 
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/01_Nifti_Data/')
-    # parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/02_GT_Bilung_Seg/')
-    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/99_Temp_Lungs')
+    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/02_GT_Bilung_Seg/')
     parser.add_argument('-rseg', '--relabel_seg_folder', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/00_GT_Lung_Seg/')
-    # parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419.csv')
-    parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419-Missing.csv')
+    parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/56-cases_dataframe_slices-20220419.csv')
     parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/')
     parser.add_argument('-t', '--task', default='SNF-lung')
     # parser.add_argument('-t', '--task', default='snf-lesion')
