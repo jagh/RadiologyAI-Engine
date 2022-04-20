@@ -589,19 +589,15 @@ def model_evaluation_patients(testbed, experiment_name, experiment_filename, mod
 
 
 
-
-
+################################################################################
 ################################################################################
 ## XGBoost Classifier Functions
-
 import pickle
 import xgboost as xgb
-
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import KFold, train_test_split, GridSearchCV
 from sklearn.metrics import confusion_matrix, mean_squared_error
 from sklearn.metrics import f1_score
-
 
 def stratifiedShuffleSplit(testbed, experiment_name, experiment_filename):
     ## Step-2: ML Training and Grid Search
@@ -1036,7 +1032,6 @@ def model_evaluation_slicesTr(testbed, experiment_name, test_set_filename, model
     metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
     Utils().mkdir(metrics_folder)
     slices_predicted.to_csv(os.path.join(metrics_folder, str(model_name +"-slices_predicted-Tr.csv")))
-
 
 
 
