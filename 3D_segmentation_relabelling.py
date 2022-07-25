@@ -57,37 +57,37 @@ def folder_3D_label_overlap(input_folder, sandbox, label_name="SNF_General"):
 
     ip = SegProcessing()
     for input_path in input_folder:
-        new_label_nifti = ip.label_overlap(input_path, sequenceOn = [1, 2, 3, 4], sequenceOff = [0, 5])
+        new_label_nifti = ip.label_overlap(input_path, sequenceOn = [1], sequenceOff = [0, 2, 3, 4, 5, 6])
         print("+ input_path: ", input_path)
 
         ## Get file name, build and write the file name
         file_name = input_path.split(os.path.sep)[-1]
 
         ## Renaming the new files
-        file_name, _ = file_name.split("-SNF_bilungs")
+        # file_name, _ = file_name.split("-SNF_bilungs")
+        file_name, _ = file_name.split("-gtlesion")
         file_name = str(file_name + "-" + label_name + ".nii.gz")
         # print("+ file_name:", file_name)
 
-        new_label_folder = os.path.join(sandbox, str("00-relabel_folder"))
+        new_label_folder = os.path.join(sandbox, str("04-General"))
         Utils().mkdir(new_label_folder)
 
         nii_file_path = os.path.join(new_label_folder, str(file_name))
         nib.save(new_label_nifti, nii_file_path)
 
 
-
 def run(args):
     input_folder = glob.glob(args.input + "/*")
     #folder_relabel_segmentations(input_folder, args.sandbox)
-    
+
     folder_3D_label_overlap(input_folder, args.sandbox, args.label_name)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default='/data/03_MICCAI/sandbox-G1/3D_labels/')
-    parser.add_argument('-s', '--sandbox', default='/data/03_MICCAI/sandbox-G1/sandbox-General/')
-    parser.add_argument('-n', '--label_name', default="SNF_General")
+    parser.add_argument('-i', '--input', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/03_GT_Lesion_Seg/')
+    parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/')
+    parser.add_argument('-n', '--label_name', default="SNF-General")
 
     args = parser.parse_args()
     run(args)
