@@ -214,13 +214,19 @@ class RadiomicsExtractor:
     ## aa_
     def get_firstOrderFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
         """ Get the First Order features """
-        firstOrderFeatures = firstorder.RadiomicsFirstOrder(ct_image, ct_mask, **self.settings)
-        extractor_firstOrder = firstOrderFeatures.execute()
-        for (key, val) in six.iteritems(firstOrderFeatures.featureValues):
-            # print("key: {} || val: {}".format(key, val))
-            image_feature_list.append(val)
-            image_header_list.append(str("aa_" + key))
-        return image_feature_list, image_header_list
+        try:
+            firstOrderFeatures = firstorder.RadiomicsFirstOrder(ct_image, ct_mask, **self.settings)
+            extractor_firstOrder = firstOrderFeatures.execute()
+            for (key, val) in six.iteritems(firstOrderFeatures.featureValues):
+                # print("key: {} || val: {}".format(key, val))
+                image_feature_list.append(val)
+                image_header_list.append(str("aa_" + key))
+            return image_feature_list, image_header_list
+
+        except ValueError:
+            image_feature_list.append(0)
+            image_header_list.append(str(00))
+            return image_feature_list, image_header_list
 
     # ## bb_
     # def get_shapeFeatures3DBK(self, ct_image, ct_mask, image_feature_list, image_header_list):
@@ -285,57 +291,90 @@ class RadiomicsExtractor:
 
     ## cc_
     def get_glcmFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
-        glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask)    #, **self.settings)
-        extractor_glcm = glcmFeatures.execute()
-        for (key, val) in six.iteritems(glcmFeatures.featureValues):
-            # print("key: {} || val: {}".format(key, val))
-            image_feature_list.append(val)
-            # image_header_list.append(str("glcmF_" + key))
-            image_header_list.append(str("cc_" + key))
-        return image_feature_list, image_header_list
+        try:
+            glcmFeatures = glcm.RadiomicsGLCM(ct_image, ct_mask)    #, **self.settings)
+            extractor_glcm = glcmFeatures.execute()
+            for (key, val) in six.iteritems(glcmFeatures.featureValues):
+                # print("key: {} || val: {}".format(key, val))
+                image_feature_list.append(val)
+                # image_header_list.append(str("glcmF_" + key))
+                image_header_list.append(str("cc_" + key))
+            return image_feature_list, image_header_list
+
+        except ValueError:
+            image_feature_list.append(0)
+            image_header_list.append(str(00))
+            return image_feature_list, image_header_list
 
     ## gg_
     def get_glszmFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
-        glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask, **self.settings)
-        extractor_glszm = glszmFeatures.execute()
-        for (key, val) in six.iteritems(glszmFeatures.featureValues):
-            # print("\t%s: %s" % (key, val))
-            image_feature_list.append(val)
-            image_header_list.append(str("gg_" + key))
-        return image_feature_list, image_header_list
+        try:
+            glszmFeatures = glszm.RadiomicsGLSZM(ct_image, ct_mask, **self.settings)
+            extractor_glszm = glszmFeatures.execute()
+            for (key, val) in six.iteritems(glszmFeatures.featureValues):
+                # print("\t%s: %s" % (key, val))
+                image_feature_list.append(val)
+                image_header_list.append(str("gg_" + key))
+            return image_feature_list, image_header_list
+
+        except ValueError:
+            image_feature_list.append(0)
+            image_header_list.append(str(00))
+            return image_feature_list, image_header_list
+
 
     ## dd_
     def get_glrlmFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
-        glrlmFeatures = glrlm.RadiomicsGLRLM(ct_image, ct_mask, **self.settings)
-        extractor_glrlm = glrlmFeatures.execute()
-        for (key, val) in six.iteritems(glrlmFeatures.featureValues):
-            # print("key: {} || val: {}".format(key, val))
-            image_feature_list.append(val)
-            # image_header_list.append(str("glcmF_" + key))
-            image_header_list.append(str("dd_" + key))
-        return image_feature_list, image_header_list
+        try:
+            glrlmFeatures = glrlm.RadiomicsGLRLM(ct_image, ct_mask, **self.settings)
+            extractor_glrlm = glrlmFeatures.execute()
+            for (key, val) in six.iteritems(glrlmFeatures.featureValues):
+                # print("key: {} || val: {}".format(key, val))
+                image_feature_list.append(val)
+                # image_header_list.append(str("glcmF_" + key))
+                image_header_list.append(str("dd_" + key))
+            return image_feature_list, image_header_list
+
+        except ValueError:
+            image_feature_list.append(0)
+            image_header_list.append(str(00))
+            return image_feature_list, image_header_list
+
 
     ## ee_
     def get_ngtdmFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
-        ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask, **self.settings)
-        extractor_ngtdm = ngtdmFeatures.execute()
-        for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
-            # print("key: {} || val: {}".format(key, val))
-            image_feature_list.append(val)
-            # image_header_list.append(str("ngtdmF_" + key))
-            image_header_list.append(str("ee_" + key))
-        return image_feature_list, image_header_list
+        try:
+            ngtdmFeatures = ngtdm.RadiomicsNGTDM(ct_image, ct_mask, **self.settings)
+            extractor_ngtdm = ngtdmFeatures.execute()
+            for (key, val) in six.iteritems(ngtdmFeatures.featureValues):
+                # print("key: {} || val: {}".format(key, val))
+                image_feature_list.append(val)
+                # image_header_list.append(str("ngtdmF_" + key))
+                image_header_list.append(str("ee_" + key))
+            return image_feature_list, image_header_list
+
+        except ValueError:
+            image_feature_list.append(0)
+            image_header_list.append(str(00))
+            return image_feature_list, image_header_list
+
 
     ## ff_
     def get_gldmFeatures(self, ct_image, ct_mask, image_feature_list, image_header_list):
-        gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask, **self.settings)
-        extractor_gldm = gldmFeatures.execute()
-        for (key, val) in six.iteritems(gldmFeatures.featureValues):
-            # print("key: {} || val: {}".format(key, val))
-            image_feature_list.append(val)
-            # image_header_list.append(str("ngtdmF_" + key))
-            image_header_list.append(str("ff_" + key))
-        return image_feature_list, image_header_list
+        try:
+            gldmFeatures = gldm.RadiomicsGLDM(ct_image, ct_mask, **self.settings)
+            extractor_gldm = gldmFeatures.execute()
+            for (key, val) in six.iteritems(gldmFeatures.featureValues):
+                # print("key: {} || val: {}".format(key, val))
+                image_feature_list.append(val)
+                # image_header_list.append(str("ngtdmF_" + key))
+                image_header_list.append(str("ff_" + key))
+            return image_feature_list, image_header_list
+
+        except ValueError:
+            image_feature_list.append(0)
+            image_header_list.append(str(00))
+            return image_feature_list, image_header_list
 
 
     ########

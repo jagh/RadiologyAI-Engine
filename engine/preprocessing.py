@@ -136,7 +136,6 @@ class ImageProcessing:
 
             return nib.Nifti1Image(image_array_reshape, image_affine)
 
-
         def extract_3D_slices(self, nifti_file_name, axial_index):
             """
             This function extracts the axial slice from a 3D nifti file.

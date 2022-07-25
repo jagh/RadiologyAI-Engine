@@ -37,8 +37,8 @@ def load_features(file_path):
     data = pd.read_csv(file_path, sep=',', header=0)
     ## Set features and labels, discard the two cases for a GGO 'CT-4'
     # X_data = data.values[:,3:].astype(np.float).astype("Int32")  #[:1107,2:]
-    X_data = data.values[:,3:].astype(np.float)  #[:1107,2:]
-    y_data = data.values[:,2]   #[:1107,1]
+    X_data = data.values[:,4:].astype(np.float)  #[:,3:]
+    y_data = data.values[:,3]   #[:,2]
     y_data=y_data.astype('int')
     print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
     return X_data, y_data
@@ -49,8 +49,8 @@ def load_features_index(file_path):
     print(type(data))
     ## Set features and labels, discard the two cases for a GGO 'CT-4'
     # X_data = data.values[:,3:].astype(np.float).astype("Int32")  #[:1107,2:]
-    X_data = data.values[:,3:].astype(np.float)  #[:1107,2:]
-    y_data = data.values[:,2]   #[:1107,1]
+    X_data = data.values[:,4:].astype(np.float)  #[:,3:]
+    y_data = data.values[:,3]   #[:,2]
     y_data = y_data.astype('int')
     X_index = data.values[:,1].astype('str')
     print("X_data: {} || y_data: {} ".format(str(X_data.shape), str(y_data.shape)))
@@ -169,12 +169,12 @@ def model_evaluation(testbed, experiment_name, experiment_filename, model_name='
     print("+ Predicted_probs: ", predicted_probs.shape)
     print("+ X_test: ", X_test.shape)
 
-    predicted_entropy = entropy(predicted_probs, axis=1)
-    print("+ Predicted_entropy: ", predicted_entropy.shape)
+    # predicted_entropy = entropy(predicted_probs, axis=1)
+    # print("+ Predicted_entropy: ", predicted_entropy.shape)
 
     ## Plot the the confusion matrix by model selected
-    labels_name = ['3', '4', '5', '6', '8', '9']
-    # labels_name = ['Non-Intubated', 'Intubated']
+    # labels_name = ['3', '4', '5', '7', '6', '8', '9']
+    labels_name = ['Non-Intubated', 'Intubated']
     plot_confusion_matrix(page_clf, X_test, y_test,
                                 display_labels=labels_name,
                                 cmap=plt.cm.Blues,
@@ -536,8 +536,8 @@ def model_evaluation_patients(testbed, experiment_name, experiment_filename, mod
     import matplotlib.pyplot as plt
 
     ## Step-1: Set labels
-    labels_name = ['3', '4', '5', '6', '8', '9']
-
+    labels_name = ['3', '4', '5', '7', '6', '8', '9']
+    # labels_name = ['Non-Intubated', 'Intubated']
     ##########################################
     ## Step-2.1: Compute the F1-score per patient
     majority_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
@@ -562,31 +562,31 @@ def model_evaluation_patients(testbed, experiment_name, experiment_filename, mod
 
 
 
-
-    ##########################################
-    ## Step-2: Compute the confusion matrix by mean_voting_prediction
-    labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
-
-    ## Step-1: Compute the F1-score per patient
-    mean_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
-                                    cases_predicted['mean_voting_prediction'].values,
-                                    average='micro'), decimals=3)
-    print("+ majority_voting_F1score: ", majority_voting_F1score)
-
-    mean_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
-                                            y_pred=cases_predicted['mean_voting_prediction'].values,
-                                            # labels=labels_name,
-                                            )
-    # print("+ CM by mean_voting_prediction: ", mean_voting_CM)
-
-    ## Step-2.1: Display the confusion matrix
-    disp = ConfusionMatrixDisplay(confusion_matrix=mean_voting_CM,
-                                    display_labels=labels_name_2,
-                                    )
-    disp.plot()
-    plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
-    plt.show()
-
+    # ##########################################
+    # ## Step-2: Compute the confusion matrix by mean_voting_prediction
+    # labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
+    # # labels_name_2 = ['3', '4', '5', '6', '8', '9']
+    #
+    # ## Step-1: Compute the F1-score per patient
+    # mean_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
+    #                                 cases_predicted['mean_voting_prediction'].values,
+    #                                 average='micro'), decimals=3)
+    # print("+ majority_voting_F1score: ", majority_voting_F1score)
+    #
+    # mean_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
+    #                                         y_pred=cases_predicted['mean_voting_prediction'].values,
+    #                                         # labels=labels_name,
+    #                                         )
+    # # print("+ CM by mean_voting_prediction: ", mean_voting_CM)
+    #
+    # ## Step-2.1: Display the confusion matrix
+    # disp = ConfusionMatrixDisplay(confusion_matrix=mean_voting_CM,
+    #                                 display_labels=labels_name_2,
+    #                                 )
+    # disp.plot()
+    # plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
+    # plt.show()
+    print("+ Process completed!")
 
 
 ################################################################################
@@ -594,6 +594,7 @@ def model_evaluation_patients(testbed, experiment_name, experiment_filename, mod
 ## XGBoost Classifier Functions
 import pickle
 import xgboost as xgb
+import lightgbm as lgb
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import KFold, train_test_split, GridSearchCV
 from sklearn.metrics import confusion_matrix, mean_squared_error
@@ -666,7 +667,8 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
     # test_sizes = [0.15, 0.10]
     this_cv = StratifiedShuffleSplit(n_splits=4, test_size=0.10, random_state=0)
     for train_index, test_index in this_cv.split(X, y):
-        xgb_model = xgb.XGBClassifier(n_jobs=1).fit(X[train_index], y[train_index])
+        # xgb_model = xgb.XGBClassifier(n_jobs=1).fit(X[train_index], y[train_index])
+        xgb_model = lgb.LGBMClassifier(n_jobs=1).fit(X[train_index], y[train_index])
 
         ## Writing the developing model
         model_file = open(str(model_path+"/sgb_model.pkl"), "wb")
@@ -685,15 +687,15 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
 
         ## Plot the the confusion matrix by model selected
         # labels_name = ['Non-Intubated', 'Intubated']
-        labels_name = ['3', '4', '5', '6', '8', '9']
-        # labels_name = ['4', '5', '6', '8', '9']
-        plot_confusion_matrix(xgb_model, X, y,
-                                    display_labels=labels_name,
-                                    cmap=plt.cm.Blues,
-                                    # normalize='true'
-                                    ) #, xticks_rotation=15)
-        plt.title(str(" XGBoost || F1-score: "+ str(train_score)))
-        plt.show()
+        # labels_name = ['3', '4', '5', '6', '8', '9']
+        # labels_name = ['3', '4', '5', '6', '8', '9']
+        # plot_confusion_matrix(xgb_model, X, y,
+        #                             display_labels=labels_name,
+        #                             cmap=plt.cm.Blues,
+        #                             # normalize='true'
+        #                             ) #, xticks_rotation=15)
+        # plt.title(str(" XGBoost || F1-score: "+ str(train_score)))
+        # plt.show()
 
 
 
@@ -713,7 +715,8 @@ def xgboostTraining(testbed, experiment_name, experiment_filename):
 
         ## Plot the the confusion matrix by model selected
         # labels_name = ['Non-Intubated', 'Intubated']
-        labels_name = ['3', '4', '5', '6', '8', '9']
+        # labels_name = ['3', '4', '5', '6', '7', '8', '9']
+        labels_name = ['Mild', 'Moderate', 'Severe']
         plot_confusion_matrix(xgb_model, X_test, y_test,
                                     display_labels=labels_name,
                                     cmap=plt.cm.Blues,
@@ -751,9 +754,20 @@ def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_file
     # test_sizes = [0.50, 0.40, 0.30, 0.20, 0.15, 0.10]
     # test_sizes = [0.15, 0.10]
     splits_count = 1
-    this_cv = StratifiedShuffleSplit(n_splits=4, test_size=0.10, random_state=0)
+    this_cv = StratifiedShuffleSplit(n_splits=6, test_size=0.15, random_state=0)
     for train_index, test_index in this_cv.split(X, y):
-        xgb_model = xgb.XGBClassifier(n_jobs=1).fit(X[train_index], y[train_index])
+        # xgb_model = xgb.XGBClassifier(n_jobs=8).fit(X[train_index], y[train_index])
+        xgb_model = xgb.XGBClassifier(n_jobs=-1,
+        # xgb_model = lgb.LGBMClassifier(n_jobs=-1,
+                                        base_score=0.2,
+                                        booster='gbtree',
+                                        gamma= 0,
+                                        learning_rate= 0.1,
+                                        n_estimators=500,
+                                        reg_alpha=0,
+                                        reg_lambda=1,
+                                        num_classes=3)
+        xgb_model = xgb_model.fit(X[train_index], y[train_index])
 
         ## Writing the developing model
         model_file = open(str(model_path+"/sgb_model.pkl"), "wb")
@@ -904,7 +918,6 @@ def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_file
             # print("+ List_of_predictios_per_slices: ", list_of_predictios_per_slices)
 
 
-
             cases_predicted.append((id_case, GT_per_case[0], majority_voting_prediction, mean_voting_prediction ,total_slices, list_of_predictions_per_slices))
 
 
@@ -920,10 +933,6 @@ def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_file
         splits_count = splits_count + 1
         print("+ splits_count: ", splits_count)
 
-        metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
-        Utils().mkdir(metrics_folder)
-        cases_predicted.to_csv(os.path.join(metrics_folder, str(model_name + str(splits_count) +"-PatientLevelTs.csv")))
-
 
         ##########################################
         ## Compute confusion matrix
@@ -931,14 +940,24 @@ def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_file
         import matplotlib.pyplot as plt
 
         ## Step-1: Set labels
-        labels_name = ['3', '4', '5', '6', '8', '9']
-
+        # labels_name = ['3', '4', '5', '6', '7', '8', '9']
+        labels_name = ['Mild', 'Moderate', 'Severe']
+        # labels_name = ['0', '1']
         ##########################################
         ## Step-2.1: Compute the F1-score per patient
         majority_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
                                         cases_predicted['majority_voting_prediction'].values,
-                                        average='micro'), decimals=3)
+                                        # average='micro'), decimals=3)
+                                        average='micro'), decimals=2)
         print("+ majority_voting_F1score: ", majority_voting_F1score)
+
+
+        ###########################################
+        ## Write
+        metrics_folder = os.path.join(testbed, experiment_name, "metrics_folder/")
+        Utils().mkdir(metrics_folder)
+        cases_predicted.to_csv(os.path.join(metrics_folder, str(model_name + str(splits_count) + "-F1_" + str(majority_voting_F1score) +"-PatientLevelTs.csv")))
+
 
         ## Step-2.2: Compute the confusion matrix by majority_voting_prediction
         majority_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
@@ -956,32 +975,35 @@ def xgboostTraining_evaluationPatients(testbed, experiment_name, experiment_file
         plt.show()
 
 
+        # ##########################################
+        # ## Step-2: Compute the confusion matrix by mean_voting_prediction
+        # # labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
+        # labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
+        #
+        # ## Step-1: Compute the F1-score per patient
+        # mean_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
+        #                                 cases_predicted['mean_voting_prediction'].values,
+        #                                 average='micro'), decimals=3)
+        # print("+ majority_voting_F1score: ", majority_voting_F1score)
+        #
+        # mean_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
+        #                                         y_pred=cases_predicted['mean_voting_prediction'].values,
+        #                                         # labels=labels_name,
+        #                                         )
+        # # print("+ CM by mean_voting_prediction: ", mean_voting_CM)
+        #
+        # ## Step-2.1: Display the confusion matrix
+        # disp = ConfusionMatrixDisplay(confusion_matrix=mean_voting_CM,
+        #                                 display_labels=labels_name_2,
+        #                                 )
+        # disp.plot()
+        # plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
+        # plt.show()
+        print("+ Not processing confusion matrix by mean_voting_prediction!")
 
 
-        ##########################################
-        ## Step-2: Compute the confusion matrix by mean_voting_prediction
-        labels_name_2 = ['3', '4', '5', '6', '7', '8', '9']
 
-        ## Step-1: Compute the F1-score per patient
-        mean_voting_F1score = np.round_(f1_score(cases_predicted['GT_per_case'].values,
-                                        cases_predicted['mean_voting_prediction'].values,
-                                        average='micro'), decimals=3)
-        print("+ majority_voting_F1score: ", majority_voting_F1score)
-
-        mean_voting_CM = confusion_matrix(y_true=cases_predicted['GT_per_case'].values,
-                                                y_pred=cases_predicted['mean_voting_prediction'].values,
-                                                # labels=labels_name,
-                                                )
-        # print("+ CM by mean_voting_prediction: ", mean_voting_CM)
-
-        ## Step-2.1: Display the confusion matrix
-        disp = ConfusionMatrixDisplay(confusion_matrix=mean_voting_CM,
-                                        display_labels=labels_name_2,
-                                        )
-        disp.plot()
-        plt.title(str(model_name+" || F1-score: "+ str(mean_voting_F1score)))
-        plt.show()
-
+###################################################################
 def model_evaluation_slicesTr(testbed, experiment_name, test_set_filename, model_name='RandomForestClassifier'):
     """ Evaluation at the patient level """
 
@@ -1035,13 +1057,32 @@ def model_evaluation_slicesTr(testbed, experiment_name, test_set_filename, model
 
 
 
-
-
 def run(args):
-    testbed = "testbed-WHO-20220325/"
+    ###################################
+    # testbed = "testbed-WHO-20220325/"
+    # testbed = "testbed-WHO-20220421/"
+    # testbed = "testbed-WHO-20220427"
+
+    ###################################
+    # testbed = "testbed-WHO-20220427-NotNormalized"
+    # testbed = "testbed-WHO-20220502-ClassBalanced"
+    # testbed = "testbed-WHO-20220502"
+
+    ###################################
+    # testbed = "testbed-WHO-20220502-Intubation"
+
+    ###################################
+    # testbed = "testbed-WHO-20220503-CaseExchange"
+    # testbed = "testbed-WHO-20220503-PosterResults-WHO"
+    # testbed = "testbed-WHO-20220503-PosterResults-WHO-3Classes"
+
+    ###################################
+    # testbed = "testbed-WHO-01_RF-Exp1_Non-normalized"
+    # testbed = "testbed-WHO-02_RF-Exp2_Z-score_Normalization"
+    testbed = "testbed-WHO-02_RF-Exp3_step_Normalization"
 
     ## Features selected
-    experiment_name = "03_MULTICLASS"
+    experiment_name = "02_MULTICLASS-PLUS" #"02_MULTICLASS" #"01_GENERALCLASS" #"04_GGO" #"03_CON" #"02_MULTICLASS-PLUS"
     train_set_filename = "cov2radiomics-Tr-FeatureSelection-WHO.csv"
     test_set_filename = "cov2radiomics-Ts-FeatureSelection-WHO.csv"
 
@@ -1055,10 +1096,10 @@ def run(args):
     # stratifiedShuffleSplit(testbed, experiment_name, experiment_filename)
 
     ## 01 - Train
-    # ml_grid_search(testbed, experiment_name, experiment_filename)
+    # ml_grid_search(testbed, experiment_name, train_set_filename)
 
-    ## 02 - Test at the slice level
-    # model_evaluation(testbed, experiment_name, experiment_filename, model_name)
+    # 02 - Test at the slice level
+    # model_evaluation(testbed, experiment_name, test_set_filename, model_name)
 
     ## 03 - Test at the patient level
     # model_evaluation_patients(testbed, experiment_name, test_set_filename,
@@ -1067,13 +1108,13 @@ def run(args):
     ## 03.1 - Train
     # model_evaluation_slicesTr(testbed, experiment_name, train_set_filename, model_name)
 
-    model_evaluation_patients(testbed, experiment_name, train_set_filename, model_name, output_file='PatientLevelTr')
+    # model_evaluation_patients(testbed, experiment_name, train_set_filename, model_name, output_file='PatientLevelTr')
 
     ## 04 -- Alternative
-    # xgboostTraining(testbed, experiment_name, experiment_filename)
+    # xgboostTraining(testbed, experiment_name, train_set_filename)
 
     ## 04.1
-    # xgboostTraining_evaluationPatients(testbed, experiment_name, train_set_filename)
+    xgboostTraining_evaluationPatients(testbed, experiment_name, train_set_filename)
 
     ## 05 - Reliability metrics
     # model_entropy(testbed, experiment_name, experiment_filename, model_name)
