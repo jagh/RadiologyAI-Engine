@@ -92,6 +92,25 @@ class SegProcessing:
             print("Not lesion segmentation")
 
 
+    def subtractSeg(self, lesion_array, lung_array):
+        """
+        This function subtracts lesions outside the lung segmentation
+        Parameters
+        ----------
+        lesion_array : numpy array
+            The lesion segmentation.
+        lung_array : numpy array
+            The lung segmentation.
+        Returns
+        -------
+        new_lesion_array : numpy array
+            The new lesion segmentation.
+        """
+        new_lesion_array = np.zeros_like(lesion_array)
+        new_lesion_array[np.where(lung_array == 1)] = lesion_array[np.where(lung_array == 1)]
+        return new_lesion_array
+
+
 
 
 class ImageProcessing:
