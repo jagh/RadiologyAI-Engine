@@ -58,7 +58,7 @@ def folder_3D_label_overlap(seg_folder, sandbox, label_name="SNF_lung", output_f
         file_name = input_path.split(os.path.sep)[-1]
 
         ## Renaming the new files
-        file_name, _ = file_name.split("-bilung")
+        file_name, _ = file_name.split("-bi-lung")
         file_name = str(file_name + "-" + label_name + ".nii.gz")
         # print("+ file_name:", file_name)
 
@@ -101,7 +101,8 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
             ct_file_name = str(metadata['ct_file_name'][row] + "_HYK.nii.gz")
             ct_file_path = os.path.join(cts_folder, ct_file_name)
         else:
-            ct_file_name = str(metadata['ct_file_name'][row] + "_SK.nii.gz")
+            # ct_file_name = str(metadata['ct_file_name'][row] + "_SK.nii.gz")
+            ct_file_name = str(metadata['ct_file_name'][row] + ".nii.gz")
             ct_file_path = os.path.join(cts_folder, ct_file_name)
 
         print("+ ct_file_path: ", ct_file_path)
@@ -112,7 +113,8 @@ def extract_slices_dataframe(cts_folder, seg_folder, dataframe, sandbox='sandbox
             seg_file_name = str(metadata['ct_file_name'][row] + "_HYK-" + task + ".nii.gz")
             seg_file_path = os.path.join(seg_folder, seg_file_name)
         else:
-            seg_file_name = str(metadata['ct_file_name'][row] + "_SK-" + task + ".nii.gz")
+            # seg_file_name = str(metadata['ct_file_name'][row] + "_SK-" + task + ".nii.gz")
+            seg_file_name = str(metadata['ct_file_name'][row] + ".nii.gz-" + task + ".nii.gz")
             seg_file_path = os.path.join(seg_folder, seg_file_name)
             # pass
 
@@ -188,7 +190,8 @@ def pyRadiomics_feature_extraction(dataframe, sandbox, task='SNF-lung', split="t
         feature_extraction_list, image_header_list = re.parallel_extractor(ct_file_path,
                                                                             seg_file_path,
                                                                             str(metadata['ct_file_name'][row] + "-" + str(metadata['slice_index'][row])),
-                                                                            metadata['who_score_ct_exam'][row],
+                                                                            # metadata['who_score_ct_exam'][row],
+                                                                            metadata['WHO_score day_0'][row],
                                                                             radiomics_set)
         ## writing features by image
         csvw = csv.writer(features_file)
@@ -227,13 +230,13 @@ def run(args):
     #                             args.task,
     #                             split="test")
 
-    ## Step-3: Extract features per segmentation layer between all cases
-    pyRadiomics_feature_extraction(args.dataframe,
-                                    args.sandbox,
-                                    args.task,
-                                    split="train",
-                                    testbed_name=args.task,
-                                    radiomics_set="bb")
+    # ## Step-3: Extract features per segmentation layer between all cases
+    # pyRadiomics_feature_extraction(args.dataframe,
+    #                                 args.sandbox,
+    #                                 args.task,
+    #                                 split="train",
+    #                                 testbed_name=args.task,
+    #                                 radiomics_set="bb")
 
     pyRadiomics_feature_extraction(args.dataframe,
                                     args.sandbox,
@@ -245,12 +248,12 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-cts', '--cts_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/01_Nifti_Data/')
-    parser.add_argument('-seg', '--seg_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/02_GT_Lung_Seg/')
-    parser.add_argument('-rseg', '--relabel_seg_folder', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/00_3D-segmentations/00_GT_Lung_Seg/')
+    parser.add_argument('-cts', '--cts_folder', default='//data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/04_2nd-Nifti_Data//')
+    parser.add_argument('-seg', '--seg_folder', default='//data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/04_2nd-testset_LungSeg/')
+    parser.add_argument('-rseg', '--relabel_seg_folder', default='//data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox-B-2nd-testset/00_3D-segmentations/SNF-Lung/')
     # parser.add_argument('-d', '--dataframe', default='//data/01_UB/00_Dev/02_Dev_Pipeline_Execution/00_dataframe_sources/who_140_cases_with_axial_index_dataframe.csv')
-    parser.add_argument('-d', '--dataframe', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/AssessNet-19_RAI-Dataset/00_dataframe_sources/04_axial_slices_140_subjects_RAI-20220630.csv')
-    parser.add_argument('-s', '--sandbox', default='/data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox/')
+    parser.add_argument('-d', '--dataframe', default='//data/01_UB/00_Dev/02_Dev_Pipeline_Execution/AssessNet-19_RAI-Dataset/02_dataframe_sources_3V/05_axial_slices/02_dataframe2Ts-2V_540_axial_slices-RAI-20220830.csv')
+    parser.add_argument('-s', '--sandbox', default='//data/01_UB/00_Dev/02_Dev_Pipeline_Execution/sandbox-B-2nd-testset/')
     parser.add_argument('-t', '--task', default='SNF-lung')
     # parser.add_argument('-t', '--task', default='snf-lesion')
 

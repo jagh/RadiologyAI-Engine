@@ -12,17 +12,14 @@ from engine.utils import Utils
 from engine.segmentations import LungSegmentations
 
 
-def run(args):
-    nii_folder = args.input
-    input_folder = glob.glob(nii_folder + "/*")
-    output_folder = args.output
-    nii_folder = args.nii_folder
-
+def lung_segmentation_dicom(input_folder, nii_folder, output_folder, seg_method, batch):
+    """ """
     ls = LungSegmentations()
     for input_path in input_folder:
 
         ## Get folder name
         folder_name = input_path.split(os.path.sep)[-1]
+        print("folder_name: {}".format(str(folder_name)))
 
         ## Read dicom image series and write it in a Nifti formt
         dicom_img =  Utils().read_dicom(input_path)
@@ -34,12 +31,55 @@ def run(args):
 
 
         ## Generating the lung segmentation and write it in a Nifti Formatting
-        lung_segmentation = ls.ct_segmentation(dicom_img, args.seg_method, args.batch)
+        lung_segmentation = ls.ct_segmentation(dicom_img, seg_method, batch)
 
         Utils().mkdir(output_folder)
         lung_file_name = os.path.join(output_folder, str(folder_name + "-bi-lung.nii.gz"))
         sitk.WriteImage(lung_segmentation, lung_file_name)
         print("CT segmentation file: {}".format(str(lung_file_name)))
+
+def lung_segmentation_nifti(nii_folder, output_folder, seg_method, batch):
+    """ """
+
+    ls = LungSegmentations()
+    nii_folder = glob.glob(nii_folder + "/*")
+
+    for input_path in nii_folder:
+        ## Get folder name
+        folder_name = input_path.split(os.path.sep)[-1]
+
+        ## Read dicom image series and write it in a Nifti formt
+        # nifti_img = Utils().read_nifti(input_path)
+        reader = sitk.ImageFileReader()
+        reader.SetImageIO("NiftiImageIO")
+        reader.SetFileName(input_path)
+        nifti_img = reader.Execute();
+        # nifti_img = sitk.ReadImage(, imageIO="")
+
+        ## Generating the lung segmentation and write it in a Nifti Formatting
+        lung_segmentation = ls.ct_segmentation(nifti_img, seg_method, batch)
+
+        Utils().mkdir(output_folder)
+        lung_file_name = os.path.join(output_folder, str(folder_name + "-bi-lung.nii.gz"))
+        sitk.WriteImage(lung_segmentation, lung_file_name)
+        print("CT segmentation file: {}".format(str(lung_file_name)))
+
+
+
+def run(args):
+    dicom_folder = args.input
+    input_folder = glob.glob(dicom_folder + "/*")
+    output_folder = args.output
+    nii_folder = args.nii_folder
+    seg_method = args.seg_method
+    batch = args.batch
+
+    # lung_segmentation_dicom(input_folder, nii_folder, output_folder, seg_method, batch)
+    lung_segmentation_nifti(nii_folder, output_folder, seg_method, batch)
+
+
+
+
 
 
 def main():
@@ -51,11 +91,13 @@ def main():
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default='/data/01_UB/01_Multiomics-Data/Clinical_Imaging/05_Step-4_CasesSourcesYale/01_Dicom_Sources')
-    parser.add_argument('-nii', '--nii_folder', default='/data/01_UB/01_Multiomics-Data/Clinical_Imaging/05_Step-4_CasesSourcesYale//02_Nifti_Data')
-    parser.add_argument('-o', '--output', default='//data/01_UB/01_Multiomics-Data/Clinical_Imaging/05_Step-4_CasesSourcesYale/03_Nifti_Vienna_LungSegmentation')
+    parser.add_argument('-i', '--input', default='/data/01_UB/osic-pulmonary-fibrosis-progression/train-DicomSources/')
+    # parser.add_argument('-nii', '--nii_folder', default='/data/01_UB/03_SystemicSclerosis/04_group_1-case/02_NiftiData_2-cases/')
+    parser.add_argument('-nii', '--nii_folder', default='/data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/04_2nd-Nifti_Data/')
+    parser.add_argument('-o', '--output', default='//data/01_UB/00_Dev/01_SNF_Dataset_First_Paper/04_2nd-testset_Lung_seg/')
     parser.add_argument('-s', '--seg_method', type=str, default='bi-lung')
-    parser.add_argument('-b', '--batch', type=int, default=5)
+    # parser.add_argument('-s', '--seg_method', type=str, default='lobes')
+    parser.add_argument('-b', '--batch', type=int, default=5)   #5)
 
     args = parser.parse_args()
     run(args)
