@@ -110,84 +110,128 @@ class SegProcessing:
         new_lesion_array[np.where(lung_array == 1)] = lesion_array[np.where(lung_array == 1)]
         return new_lesion_array
 
+    def get_upper_lower_bounds(self, lung_array):
+        """
+        This function gets the upper and lower bounds of the lung segmentation.
+        Parameters
+        ----------
+        lung_array : numpy array
+            The lung segmentation.
+        Returns
+        -------
+        upper_bound : int
+            The upper bound of the lung segmentation.
+        lower_bound : int
+            The lower bound of the lung segmentation.
+        """
+        ## Get the upper and lower bounds of the lung segmentation
+        upper_bound = np.where(lung_array == 1)[0].max()
+        lower_bound = np.where(lung_array == 1)[0].min()
+        return upper_bound, lower_bound
+
+    def get_equidistant_slices(self, upper_bound, lower_bound, num_slices):
+        """
+        Get ten equidistant slices from the lung segmentation.
+        Parameters
+        ----------
+        upper_bound : int
+            The upper bound of the lung segmentation.
+        lower_bound : int
+            The lower bound of the lung segmentation.
+        num_slices : int
+            The number of slices to be extracted.
+        Returns
+        -------
+        equidistant_slices : list
+            The list of the equidistant slices.
+        """
+        ## Get the equidistant slices
+        equidistant_slices = np.linspace(lower_bound, upper_bound, num_slices, dtype=int)
+        return equidistant_slices
+
+
+
 
 
 
 class ImageProcessing:
+    """
+    Module for preprocesing the CT images
+    """
+
+    def __init__(self):
+        pass
+
+    def extract_axial_slice_3D(self, nifti_file_name, axial_index):
         """
-        Module for preprocesing the CT images
+        This function extracts the axial slice from a 3D nifti file.
+        The function takes in the nifti file name and the axial index
+        and returns the axial slice.
+
+        Parameters
+        ----------
+        nifti_file_name : str
+            The nifti file name.
+        axial_index : int
+            The axial index of the slice.
+        Returns
+        -------
+        image_slice : nifti image
+            The axial slice of the nifti file.
         """
 
-        def __init__(self):
-            pass
+        ## get the ct array
+        image = nib.load(nifti_file_name)
+        image_array = image.get_fdata()
+        image_affine = image.affine
 
-        def extract_axial_slice_3D(self, nifti_file_name, axial_index):
-            """
-            This function extracts the axial slice from a 3D nifti file.
-            The function takes in the nifti file name and the axial index
-            and returns the axial slice.
+        ## Get the axial slice in array for images and labels
+        image_slice = image_array[:, :, axial_index]
 
-            Parameters
-            ----------
-            nifti_file_name : str
-                The nifti file name.
-            axial_index : int
-                The axial index of the slice.
-            Returns
-            -------
-            image_slice : nifti image
-                The axial slice of the nifti file.
-            """
+        # ## Axial slice transformation with shape (x, y, 1) -> 'patch_size':([  1, 512])
+        # image_array_reshape = image_slice.reshape((512, 512, 1))
 
-            ## get the ct array
-            image = nib.load(nifti_file_name)
-            image_array = image.get_fdata()
-            image_affine = image.affine
+        ## Axial slice transformation with shape (1, x, y) ->
+        image_array_reshape = image_slice.reshape((1, 512, 512))
 
+        return nib.Nifti1Image(image_array_reshape, image_affine)
+
+
+    def extract_3D_slices(self, nifti_file_name, axial_index):
+        """
+        This function extracts the axial slice from a 3D nifti file.
+        The function takes in the nifti file name and the axial index
+        and returns the axial slice.
+
+        Parameters
+        ----------
+        nifti_file_name : str
+            The nifti file name.
+        axial_index : int
+            The axial index of the slice.
+        Returns
+        -------
+        image_slice : nifti image
+            The axial slice of the nifti file.
+        """
+
+        ## SimpleITK -> get the ct array
+        image_array = sitk.GetArrayFromImage(sitk.ReadImage(nifti_file_name))
+        image_itk = sitk.ReadImage(nifti_file_name)
+
+        try:
             ## Get the axial slice in array for images and labels
-            image_slice = image_array[:, :, axial_index]
+            image_slice = image_array[axial_index, :, :]
 
-            # ## Axial slice transformation with shape (x, y, 1) -> 'patch_size':([  1, 512])
-            # image_array_reshape = image_slice.reshape((512, 512, 1))
-
-            ## Axial slice transformation with shape (1, x, y) ->
+            ## SimpleITK for axial slice transformation with shape (1, x, y)
             image_array_reshape = image_slice.reshape((1, 512, 512))
 
-            return nib.Nifti1Image(image_array_reshape, image_affine)
+            # axial_slice_3D = sitk.GetImageFromArray(image_array_reshape)
+            # axial_slice_3D.CopyInformation(seg_itk)
 
-        def extract_3D_slices(self, nifti_file_name, axial_index):
-            """
-            This function extracts the axial slice from a 3D nifti file.
-            The function takes in the nifti file name and the axial index
-            and returns the axial slice.
+            return sitk.GetImageFromArray(image_array_reshape)
 
-            Parameters
-            ----------
-            nifti_file_name : str
-                The nifti file name.
-            axial_index : int
-                The axial index of the slice.
-            Returns
-            -------
-            image_slice : nifti image
-                The axial slice of the nifti file.
-            """
+        except IndexError:
+            print("+ IndexError: index {} is out of bounds in {}".format(axial_index, nifti_file_name))
 
-            ## SimpleITK -> get the ct array
-            image_array = sitk.GetArrayFromImage(sitk.ReadImage(nifti_file_name))
-            image_itk = sitk.ReadImage(nifti_file_name)
-
-            try:
-                ## Get the axial slice in array for images and labels
-                image_slice = image_array[axial_index, :, :]
-
-                ## SimpleITK for axial slice transformation with shape (1, x, y)
-                image_array_reshape = image_slice.reshape((1, 512, 512))
-
-                # axial_slice_3D = sitk.GetImageFromArray(image_array_reshape)
-                # axial_slice_3D.CopyInformation(seg_itk)
-
-                return sitk.GetImageFromArray(image_array_reshape)
-
-            except IndexError:
-                print("+ IndexError: index {} is out of bounds in {}".format(axial_index, nifti_file_name))
+        
