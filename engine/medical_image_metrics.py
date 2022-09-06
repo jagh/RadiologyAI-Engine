@@ -2,19 +2,30 @@ import sys, os
 from medpy import metric
 
 class MIM:
-    """ Processing of a variety of medical imaging metrics based on the MedPy library """
+    """ Processing of a variety of medical imaging metrics based on the MedPy library 
+        -----------------------
+        Parameters:
+        - result: the result of the segmentation
+        - reference: the ground truth
+        - patient_id: the patient id
+        - slice_position: the slice position
+    """
 
     def __init__(self):
         self.mim_values_list = []
         self.mim_header_list = []
 
-    def binary_metrics(self, result, reference, patient_id, slice_position):
+    def binary_metrics(self, result, reference, patient_id, slice_position, who_score, seg_class):
 
         self.mim_values_list.append(patient_id)
         self.mim_values_list.append(slice_position)
+        self.mim_values_list.append(who_score)
+        self.mim_values_list.append(seg_class)
 
         self.mim_header_list.append('patient_id')
         self.mim_header_list.append('slice_position')
+        self.mim_header_list.append('who_score')
+        self.mim_header_list.append('seg_class')
 
         dice_coefficient = metric.binary.dc(result, reference)
         self.mim_values_list.append(dice_coefficient)
